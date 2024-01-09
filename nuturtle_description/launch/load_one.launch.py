@@ -14,6 +14,9 @@ def generate_launch_description():
         DeclareLaunchArgument('use_rviz',
                               default_value="true",
                               description="Launches rviz (true | false)"),
+        DeclareLaunchArgument('use_jsp',
+                              default_value="true",
+                              description="Launches joint state publisher (true | false)"),
 
         # Nodes
         Node(
@@ -40,5 +43,13 @@ def generate_launch_description():
                                                         'nuturtle_description'),
                                                    'config',
                                                    'basic_purple.rviz'])],
-            on_exit=Shutdown())
+            on_exit=Shutdown()),
+
+        Node(
+            package='joint_state_publisher',
+            executable='joint_state_publisher',
+            name='joint_state_publisher',
+            output='screen',
+            condition=IfCondition(LaunchConfiguration('use_jsp')))
+        
     ])
