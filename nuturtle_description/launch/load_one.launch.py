@@ -11,15 +11,9 @@ from launch_ros.substitutions import FindPackageShare, ExecutableInPackage
 def generate_launch_description():
     return LaunchDescription([
         # Args/params
-        DeclareLaunchArgument('xacro_file',
-                              default_value=PathJoinSubstitution(
-                                  [FindPackageShare("nuturtle_description"),
-                                   "urdf/turtlebot3_burger.urdf.xacro"]),
-                              description="The path to the xacro file. Defaults to urdf/turtle.urdf.xacro"),
-
         DeclareLaunchArgument('use_rviz',
                               default_value="true",
-                              description="Controls whether or not rviz is launched (true | false)"),
+                              description="Launches rviz (true | false)"),
 
         # Nodes
         Node(
@@ -31,9 +25,10 @@ def generate_launch_description():
                                                             'xacro', 'xacro'),
                                                        TextSubstitution(
                                                            text=' '),
-                                                       LaunchConfiguration(
-                                                           'xacro_file')
-                                                       ])}]),
+                                                       PathJoinSubstitution(
+                                                      [FindPackageShare("nuturtle_description"),
+                                                       "urdf",
+                                                       "turtlebot3_burger.urdf.xacro"])])}]),
 
         Node(
             package='rviz2',

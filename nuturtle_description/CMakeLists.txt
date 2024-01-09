@@ -25,7 +25,7 @@ endif()
 
 # Install files.
 install(
-  DIRECTORY launch 
+  DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}/)
 install(
   DIRECTORY urdf
