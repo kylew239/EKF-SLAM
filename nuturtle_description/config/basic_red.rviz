@@ -6,8 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Grid1
         - /RobotModel1
+        - /RobotModel1/Status1
       Splitter Ratio: 0.5
     Tree Height: 549
   - Class: rviz_common/Selection
@@ -59,7 +59,7 @@ Visualization Manager:
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /purple/robot_description
+        Value: /red/robot_description
       Enabled: true
       Links:
         All Links Enabled: true
@@ -104,14 +104,14 @@ Visualization Manager:
         Inertia: false
         Mass: false
       Name: RobotModel
-      TF Prefix: purple
+      TF Prefix: red
       Update Interval: 0
       Value: true
       Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: purple/base_footprint
+    Fixed Frame: red/base_footprint
     Frame Rate: 30
   Name: root
   Tools:
@@ -154,7 +154,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 1.0980644226074219
+      Distance: 1.6075090169906616
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -169,10 +169,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.58039790391922
+      Pitch: 0.4953983724117279
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.40539807081222534
+      Yaw: 0.4103982448577881
     Saved: ~
 Window Geometry:
   Displays:
@@ -190,5 +190,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 2370
-  Y: 128
+  X: 2133
+  Y: 83
