@@ -1,0 +1,2 @@
+Worked with: []
+[1] ChatGPT. Used on 1/11/2024, in ./nuturtle_description/README.md. Transcript is in ./chatgpt/transcript1.md.
