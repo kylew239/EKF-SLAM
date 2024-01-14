@@ -78,9 +78,11 @@ endif()
 
 #### Catch2
 find_package(Catch2 3 REQUIRED)
+
 # These tests can use the Catch2-provided main
-add_executable(tests tests/test_geometry2.cpp)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+add_executable(turtlelib_test tests/test_geometry2.cpp ${HEADER_FILES})
+target_link_libraries(turtlelib_test turtlelib Catch2::Catch2WithMain)
+add_test(NAME Test_of_Turtlelib COMMAND turtlelib_test)
 
 # These tests need their own main
 # add_executable(custom-main-tests test.cpp test-main.cpp)

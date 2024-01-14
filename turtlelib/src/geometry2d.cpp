@@ -1,6 +1,5 @@
 #include "turtlelib/geometry2d.hpp"
 #include <iosfwd> // contains forward definitions for iostream objects
-#include <iostream> // for inputs and outputs
 #include <string> // for string operations
 
 namespace turtlelib{
