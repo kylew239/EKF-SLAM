@@ -3,10 +3,9 @@
 /// \file
 /// \brief Two-dimensional geometric primitives.
 
-#include <iosfwd> // contains forward definitions for iostream objects
 #include <cmath>  // contains math operations
 #include <iostream> // for inputs and outputs
-#include <string> // for string operations
+
 
 namespace turtlelib
 {
@@ -43,16 +42,7 @@ namespace turtlelib
     /// \brief wrap an angle to (-PI, PI]
     /// \param rad (angle in radians)
     /// \return an angle equivalent to rad but in the range (-PI, PI]
-    double normalize_angle(double rad){
-        double twoPI = 2*PI;
-        while(rad > twoPI){
-            rad -= twoPI;
-        }
-        while (rad <= twoPI){
-            rad += twoPI;
-        }
-        return rad;
-    }
+    double normalize_angle(double rad);
 
     /// static_assertions test compile time assumptions.
     /// You should write at least one more test for each function
@@ -79,10 +69,7 @@ namespace turtlelib
     /// \brief output a 2 dimensional point as [xcomponent ycomponent]
     /// \param os - stream to output to
     /// \param p - the point to print
-    std::ostream & operator<<(std::ostream & os, const Point2D & p){
-        os << "[" << p.x << " " << p.y << "]" << std::endl;
-        return os;
-    }
+    std::ostream & operator<<(std::ostream & os, const Point2D & p);
 
     /// \brief input a 2 dimensional point
     ///   You should be able to read vectors entered as follows:
@@ -90,14 +77,7 @@ namespace turtlelib
     /// \param is - stream from which to read
     /// \param p [out] - output vector
     /// HINT: See operator>> for Vector2D
-    std::istream & operator>>(std::istream & is, Point2D & p){
-        // if point inputted as [x y] format
-        if(is.peek() == '['){
-            is.get();   // Get rid of the [ at the start
-        }
-        is >> p.x >> p.y; // Read double values, stopping at spaces, and store into variable
-        return is;
-    }
+    std::istream & operator>>(std::istream & is, Point2D & p);
 
     /// \brief A 2-Dimensional Vector
     struct Vector2D
@@ -114,26 +94,19 @@ namespace turtlelib
     /// \param tail point corresponding to the tail of the vector
     /// \return a vector that points from p1 to p2
     /// NOTE: this is not implemented in terms of -= because subtracting two Point2D yields a Vector2D
-    Vector2D operator-(const Point2D & head, const Point2D & tail){
-        return Vector2D{head.x-tail.x, head.y-tail.y};
-    }
+    Vector2D operator-(const Point2D & head, const Point2D & tail);
 
     /// \brief Adding a vector to a point yields a new point displaced by the vector
     /// \param tail The origin of the vector's tail
     /// \param disp The displacement vector
     /// \return the point reached by displacing by disp from tail
     /// NOTE: this is not implemented in terms of += because of the different types
-    Point2D operator+(const Point2D & tail, const Vector2D & disp){
-        return Point2D{tail.x+disp.x, tail.y+disp.y};
-    }
+    Point2D operator+(const Point2D & tail, const Vector2D & disp);
 
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// \param os - stream to output to
     /// \param v - the vector to print
-    std::ostream & operator<<(std::ostream & os, const Vector2D & v){
-        os << "[" << v.x << " " << v.y << "]" << std::endl;
-        return os;
-    }
+    std::ostream & operator<<(std::ostream & os, const Vector2D & v);
 
     /// \brief input a 2 dimensional vector
     ///   You should be able to read vectors entered as follows:
@@ -153,14 +126,7 @@ namespace turtlelib
     /// We have lower level control however. For example:
     /// peek looks at the next unprocessed character in the buffer without removing it
     /// get removes the next unprocessed character from the buffer.
-    std::istream & operator>>(std::istream & is, Vector2D & v){
-        // if point inputted as [x y] format
-        if(is.peek() == '['){
-            is.get();   // Get rid of the [ at the start
-        }
-        is >> v.x >> v.y; // Read double values, stopping at spaces, and store into variable
-        return is;
-    }
+    std::istream & operator>>(std::istream & is, Vector2D & v);
 }
 
 #endif

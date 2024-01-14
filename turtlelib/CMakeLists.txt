@@ -6,6 +6,8 @@ cmake_minimum_required(VERSION 3.22)
 # find the c and c++ compilers
 project(turtlelib)
 
+set(HEADER_FILES include/turtlelib/geometry2d.hpp)
+
 # Find your dependencies.
 # Many libraries ship with files that allow CMake to find them
 # Then general behavior is to call "find_package" but the options
@@ -19,7 +21,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/test.cpp)
+add_library(turtlelib src/temp.cpp ${HEADER_FILES})
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -74,6 +76,16 @@ if(${DOXYGEN_FOUND} AND ${BUILD_DOCS})
 endif()
 
 
+#### Catch2
+find_package(Catch2 3 REQUIRED)
+# These tests can use the Catch2-provided main
+add_executable(tests tests/test_geometry2.cpp)
+target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+
+# These tests need their own main
+# add_executable(custom-main-tests test.cpp test-main.cpp)
+# target_link_libraries(custom-main-tests PRIVATE Catch2::Catch2)
+
 
 # install the include files by copying the whole include directory
 install(DIRECTORY include/turtlelib DESTINATION include)
@@ -82,7 +94,7 @@ install(DIRECTORY include/turtlelib DESTINATION include)
 # Also create CMake Export called projet_name-targets
 # The CMake Export contains files that allow other CMake projects
 # to find this project. It must be installed separately.
-# install(TARGETS turtlelib EXPORT turtlelib-targets)
+install(TARGETS turtlelib EXPORT turtlelib-targets)
 
 # The project_name-targets created by install(TARGETS) needs to be installed.
 # install(EXPORT ...) will generate a file called project_name-config.cmake
