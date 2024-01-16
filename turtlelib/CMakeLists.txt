@@ -21,7 +21,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/temp.cpp ${HEADER_FILES})
+add_library(turtlelib src/geometry2d.cpp ${HEADER_FILES})
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -76,17 +76,6 @@ if(${DOXYGEN_FOUND} AND ${BUILD_DOCS})
 endif()
 
 
-#### Catch2
-find_package(Catch2 3 REQUIRED)
-
-# These tests can use the Catch2-provided main
-add_executable(turtlelib_test tests/test_geometry2.cpp ${HEADER_FILES})
-target_link_libraries(turtlelib_test turtlelib Catch2::Catch2WithMain)
-add_test(NAME Test_of_Turtlelib COMMAND turtlelib_test)
-
-# These tests need their own main
-# add_executable(custom-main-tests test.cpp test-main.cpp)
-# target_link_libraries(custom-main-tests PRIVATE Catch2::Catch2)
 
 
 # install the include files by copying the whole include directory
@@ -109,3 +98,19 @@ install(EXPORT turtlelib-targets
         FILE turtlelib-config.cmake
         NAMESPACE turtlelib::
         DESTINATION lib/cmake/${PROJECT_NAME})
+
+
+include(CTest)
+
+# CTest sets BUILD_TESTING to on. To disable tests add -DBUILD_TESTING=OFF when invoking cmake
+if(BUILD_TESTING)
+    # Find the Unit testing framework. In this example, Catch2
+    find_package(Catch2 3 REQUIRED)
+
+    # A test is just an executable that is linked against the unit testing library
+    add_executable(test_geometry2d tests/test_geometry2d.cpp)
+    target_link_libraries(test_geometry2d turtlelib Catch2::Catch2WithMain)
+
+    # register the test with CTest, telling it what executable to run
+    add_test(NAME Testing_geometry COMMAND test_geometry2d)
+endif()
