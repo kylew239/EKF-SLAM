@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.22)
 # find the c and c++ compilers
 project(turtlelib)
 
-set(HEADER_FILES include/turtlelib/geometry2d.hpp)
+set(HEADER_FILES include/turtlelib/geometry2d.hpp include/turtlelib/se2d.hpp)
 
 # Find your dependencies.
 # Many libraries ship with files that allow CMake to find them
@@ -21,7 +21,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry2d.cpp ${HEADER_FILES})
+add_library(turtlelib src/geometry2d.cpp src/se2d.cpp ${HEADER_FILES})
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
