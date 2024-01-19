@@ -1,2 +1,3 @@
-Worked with: []
+Worked with: [Max Palay, Carter DiOrio, Courtney Smith]
 [1] ChatGPT. Used on 1/11/2024, in ./nuturtle_description/README.md. Transcript is in ./chatgpt/transcript1.md.
+[2] test_se2d tests obtained from Max Palay: [Twist2D<<, Twist2D>>, Transform2D(point), Transform2D(vector), Transform2D*=]

@@ -45,21 +45,21 @@ namespace turtlelib
     }
 
     Point2D Transform2D::operator()(Point2D p) const{
-        return Point2D{x*std::cos(theta) - y*std::sin(theta) + p.x,
-                       x*std::sin(theta) + y*std::cos(theta) + p.y};
+        return Point2D{p.x*std::cos(theta) - p.y*std::sin(theta) + x,
+                       p.x*std::sin(theta) + p.y*std::cos(theta) + y};
     }
 
     Vector2D Transform2D::operator()(Vector2D v) const{
-        return Vector2D{x*std::cos(theta) - y*std::sin(theta) + v.x,
-                        x*std::sin(theta) + y*std::cos(theta) + v.y};
+        return Vector2D{v.x*std::cos(theta) - v.y*std::sin(theta) + x,
+                        v.x*std::sin(theta) + v.y*std::cos(theta) + y};
     }
 
     Twist2D Transform2D::operator()(Twist2D twist) const{
         return Twist2D{
             twist.omega,
-            twist.x*std::cos(theta) - twist.y*std::sin(theta) + y*twist.omega,
-            twist.x*std::cos(theta) + twist.y*std::sin(theta) - y*twist.omega
-            };   
+            y*twist.omega + twist.x*std::cos(theta) - twist.y*std::sin(theta),
+            -x*twist.omega + twist.x*std::sin(theta) + twist.y*std::cos(theta)
+        };   
     }
 
     Transform2D Transform2D::inv() const{
@@ -69,9 +69,9 @@ namespace turtlelib
     }
 
     Transform2D & Transform2D::operator*=(const Transform2D & rhs){
-        theta = theta + rhs.theta;
         x = x + rhs.x*std::cos(theta) - rhs.y*sin(theta);
         y = y + rhs.x*std::sin(theta) + rhs.y*cos(theta);
+        theta = theta + rhs.theta;
         return *this;
     }
 
@@ -90,6 +90,11 @@ namespace turtlelib
 
     std::istream & operator>>(std::istream & is, Transform2D & tf){
         double deg, x, y;
+        // check if input as "deg:" format
+        if(is.peek() == 'd'){
+            std::string temp1, temp2, temp3;
+            is >> temp1 >> deg >> temp2 >> x >> temp3 >> y;
+        }
         is >> deg >> x >> y;
         tf = Transform2D{Vector2D{x, y},
                          deg2rad(deg)};
