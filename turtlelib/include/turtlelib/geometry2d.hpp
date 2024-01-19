@@ -103,6 +103,11 @@ namespace turtlelib
     /// NOTE: this is not implemented in terms of += because of the different types
     Point2D operator+(const Point2D & tail, const Vector2D & disp);
 
+    /// \brief normalize a vecotr
+    /// \param v vector to normalize
+    /// \return a unit vector
+    Vector2D normalize(const Vector2D & v);
+
     /// \brief output a 2 dimensional vector as [xcomponent ycomponent]
     /// \param os - stream to output to
     /// \param v - the vector to print

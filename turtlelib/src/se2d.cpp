@@ -50,8 +50,8 @@ namespace turtlelib
     }
 
     Vector2D Transform2D::operator()(Vector2D v) const{
-        return Vector2D{v.x*std::cos(theta) - v.y*std::sin(theta) + x,
-                        v.x*std::sin(theta) + v.y*std::cos(theta) + y};
+        return Vector2D{v.x*std::cos(theta) - v.y*std::sin(theta),
+                        v.x*std::sin(theta) + v.y*std::cos(theta)};
     }
 
     Twist2D Transform2D::operator()(Twist2D twist) const{

@@ -82,6 +82,13 @@ TEST_CASE("Adding a vector to a point", "[geometry2d]"){
     REQUIRE_THAT(p2v2.y, Catch::Matchers::WithinRel(-1.7));
 }
 
+TEST_CASE("Normalize vector", "[vector]"){
+    turtlelib::Vector2D v = {5.0, 5.0};
+    turtlelib::Vector2D v_hat = normalize(v);
+    REQUIRE_THAT(v_hat.x, Catch::Matchers::WithinRel(0.707, 0.001));
+    REQUIRE_THAT(v_hat.y, Catch::Matchers::WithinRel(0.707, 0.001));
+}
+
 TEST_CASE("Stream insertion operator <<", "[vector]"){
     turtlelib::Vector2D vector = {-1.3, 2.7};
     std::stringstream strStream;

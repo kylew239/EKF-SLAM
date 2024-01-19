@@ -21,7 +21,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry2d.cpp src/se2d.cpp src/svg.cpp ${HEADER_FILES})
+add_library(turtlelib src/geometry2d.cpp src/se2d.cpp src/svg.cpp src/frame_main.cpp ${HEADER_FILES})
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -46,14 +46,14 @@ target_compile_features(turtlelib PUBLIC cxx_std_17)
 
 # Create an executable from the following source code files
 # The Name of the executable creates a cmake "target"
-# add_executable(Name src/Name_main.cpp)
+add_executable(frame_main src/frame_main.cpp)
 
 # Use target_link_libraries to add dependencies to a "target"
 # (e.g., a library or executable)
 # This will automatically add all required library files
 # that need to be linked
 # and paths to th locations of header files
-# target_link_libraries(Name Eigen3::Eigen turtlelib)
+target_link_libraries(frame_main Eigen3::Eigen turtlelib)
 
 
 #### DOXYGEN

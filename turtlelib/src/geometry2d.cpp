@@ -36,6 +36,11 @@ namespace turtlelib{
         return Point2D{tail.x+disp.x, tail.y+disp.y};
     }
 
+    Vector2D normalize(const Vector2D & v){
+        double mag = std::sqrt(std::pow(v.x, 2.0) + std::pow(v.y, 2.0));
+        return Vector2D{v.x/mag, v.y/mag};
+    }
+
     std::ostream & operator<<(std::ostream & os, const Vector2D & v){
         os << "[" << v.x << " " << v.y << "]";
         return os;
