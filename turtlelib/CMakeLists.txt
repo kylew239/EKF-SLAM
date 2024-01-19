@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.22)
 # find the c and c++ compilers
 project(turtlelib)
 
-set(HEADER_FILES include/turtlelib/geometry2d.hpp include/turtlelib/se2d.hpp)
+set(HEADER_FILES include/turtlelib/geometry2d.hpp include/turtlelib/se2d.hpp include/turtlelib/svg.hpp)
 
 # Find your dependencies.
 # Many libraries ship with files that allow CMake to find them
@@ -21,7 +21,7 @@ find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry2d.cpp src/se2d.cpp ${HEADER_FILES})
+add_library(turtlelib src/geometry2d.cpp src/se2d.cpp src/svg.cpp ${HEADER_FILES})
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -107,10 +107,15 @@ if(BUILD_TESTING)
     # Find the Unit testing framework. In this example, Catch2
     find_package(Catch2 3 REQUIRED)
 
-    # A test is just an executable that is linked against the unit testing library
+    # Geometry2D
     add_executable(test_geometry2d tests/test_geometry2d.cpp)
     target_link_libraries(test_geometry2d turtlelib Catch2::Catch2WithMain)
 
+    # SVG
+    add_executable(test_svg tests/test_svg.cpp)
+    target_link_libraries(test_svg turtlelib Catch2::Catch2WithMain)
+
     # register the test with CTest, telling it what executable to run
     add_test(NAME Testing_geometry COMMAND test_geometry2d)
+    add_test(NAME Testing_svg COMMAND test_svg)
 endif()
