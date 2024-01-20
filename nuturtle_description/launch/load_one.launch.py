@@ -42,7 +42,7 @@ def generate_launch_description():
                                   LaunchConfiguration('color')]),
                         "frame_prefix":
                          [LaunchConfiguration('color'),
-                         TextSubstitution(text='/')]}],
+                          TextSubstitution(text='/')]}],
             namespace=LaunchConfiguration('color')),
 
         Node(
