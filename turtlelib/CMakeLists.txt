@@ -15,7 +15,6 @@ set(HEADER_FILES include/turtlelib/geometry2d.hpp include/turtlelib/se2d.hpp inc
 # That is defined to reference the library
 # here: we find the eigen library as per the instruction
 # https://eigen.tuxfamily.org/dox/TopicCMakeGuide.html
-find_package(Eigen3 3.3 REQUIRED NO_MODULE)
 
 # Create a library.  Can specify if it is shared or static but usually
 # you don't need or want to.
@@ -53,7 +52,7 @@ add_executable(frame_main src/frame_main.cpp)
 # This will automatically add all required library files
 # that need to be linked
 # and paths to th locations of header files
-target_link_libraries(frame_main Eigen3::Eigen turtlelib)
+target_link_libraries(frame_main turtlelib)
 
 
 #### DOXYGEN

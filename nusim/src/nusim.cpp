@@ -4,14 +4,17 @@
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
+#include "rclcpp/qos.hpp"
 
 #include "nusim/srv/teleport.hpp"
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include "tf2_ros/transform_broadcaster.h"
-#include "geometry_msgs/msg/transform_stamped.h"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Vector3.h"
+#include "visualization_msgs/msg/marker_array.hpp"
+#include "visualization_msgs/msg/marker.hpp"
 
 using namespace std::chrono_literals;
 
@@ -26,15 +29,26 @@ public:
     declare_parameter("x0", 0.0);
     declare_parameter("y0", 0.0);
     declare_parameter("th0", 0.0);
+    declare_parameter("arena_x_length", 2.0);
+    declare_parameter("arena_y_length", 2.0);
 
     // Vars
     rate_ = get_parameter("rate").as_double();
     x0_ = get_parameter("x0").as_double();
     y0_ = get_parameter("y0").as_double();
     th0_ = get_parameter("th0").as_double();
+    arena_x_length = get_parameter("arena_x_length").as_double();
+    arena_y_length = get_parameter("arena_y_length").as_double();
+    arena_height = 0.25;
+    arena_thickness = 0.05;
+
+    // qos profile transient local
+    rclcpp::QoS qos(20);
+    qos.transient_local();
 
     // Publishers
     time_publisher_ = create_publisher<std_msgs::msg::UInt64>("~/timestep", 10);
+    wall_publisher_ = create_publisher<visualization_msgs::msg::MarkerArray>("~/walls", qos);
 
     // Services
     reset_server_ = create_service<std_srvs::srv::Empty>(
@@ -62,6 +76,44 @@ public:
     tf_stamped_.transform.rotation.z = q.z();
     tf_stamped_.transform.rotation.w = q.w();
 
+    // Arena Walls All
+    wall_array_.markers.resize(4);
+    for(int i =0; i < 4; i++){
+        wall_array_.markers[i].header.frame_id = "nusim/world";
+        wall_array_.markers[i].header.stamp = this->now();
+        wall_array_.markers[i].ns = "walls";
+        wall_array_.markers[i].id = i;
+        wall_array_.markers[i].type = visualization_msgs::msg::Marker::CUBE;
+        wall_array_.markers[i].action = visualization_msgs::msg::Marker::ADD;
+        wall_array_.markers[i].pose.position.z = arena_height/2;
+        wall_array_.markers[i].scale.z = arena_height;
+        wall_array_.markers[i].pose.orientation.w = 1.0;
+        wall_array_.markers[i].color.a = 1.0;
+        wall_array_.markers[i].color.r = 1.0;
+    }
+    // Individual Walls
+    wall_array_.markers[0].pose.position.x = (arena_x_length + 0.05)/2;
+    wall_array_.markers[0].pose.position.y = 0.0;
+    wall_array_.markers[0].scale.x = 0.05;
+    wall_array_.markers[0].scale.y = arena_y_length + 0.1; // Fill in corners of the arena walls
+
+    wall_array_.markers[1].pose.position.x = (-arena_x_length - 0.05)/2;
+    wall_array_.markers[1].pose.position.y = 0.0;
+    wall_array_.markers[1].scale.x = 0.05;
+    wall_array_.markers[1].scale.y = arena_y_length + 0.1;
+
+    wall_array_.markers[2].pose.position.x = 0.0;
+    wall_array_.markers[2].pose.position.y = (-arena_y_length - 0.05)/2;
+    wall_array_.markers[2].scale.x = arena_x_length;
+    wall_array_.markers[2].scale.y = 0.05;
+
+    wall_array_.markers[3].pose.position.x = 0.0;
+    wall_array_.markers[3].pose.position.y = (arena_y_length + 0.05)/2;
+    wall_array_.markers[3].scale.x = arena_x_length;
+    wall_array_.markers[3].scale.y = 0.05;
+
+    wall_publisher_->publish(wall_array_);
+
     // Timer
     timer_ = create_wall_timer(1s / rate_, std::bind(&NusimNode::timer_callback, this));
   }
@@ -73,9 +125,12 @@ private:
   geometry_msgs::msg::Transform tf_;
   tf2::Quaternion q;
   double x0_, y0_, th0_;
+  double arena_x_length, arena_y_length, arena_height, arena_thickness;
+  visualization_msgs::msg::MarkerArray wall_array_;
 
   // Publishers
-  rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr time_publisher_;
+  rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr time_publisher_;  
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr wall_publisher_;
 
   // Services
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_server_;
