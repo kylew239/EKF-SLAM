@@ -135,7 +135,7 @@ public:
     // Build and publish
     obstacle_array_.markers.resize(obstacles_x_.size());
     int size = static_cast<int>(obstacles_x_.size()); // Cast to int to get rid of comparison warning (size_t)
-    
+
     for (int i = 0; i < size; i++) {
       obstacle_array_.markers[i].header.frame_id = "nusim/world";
       obstacle_array_.markers[i].header.stamp = this->now();
