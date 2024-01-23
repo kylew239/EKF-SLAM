@@ -51,10 +51,10 @@ install(TARGETS
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# install(DIRECTORY
-#   config launch
-#   DESTINATION share/nusim
-# )
+install(DIRECTORY
+  config launch
+  DESTINATION share/nusim
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

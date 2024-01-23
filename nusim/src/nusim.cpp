@@ -44,8 +44,9 @@ public:
     arena_y_length = get_parameter("arena_y_length").as_double();
     arena_height = 0.25;
     arena_thickness = 0.05;
-    obstacles_x_ = get_parameter("obstacles_x_").as_double_array();
-    obstacles_y_ = get_parameter("obstacles_y_").as_double_array();
+    obstacles_x_ = get_parameter("obstacles_x").as_double_array();
+    obstacles_y_ = get_parameter("obstacles_y").as_double_array();
+    obstacles_r_ = get_parameter("obstacles_r").as_double();
 
     // qos profile transient local
     rclcpp::QoS qos(20);
@@ -133,7 +134,9 @@ public:
 
     // Build and publish
     obstacle_array_.markers.resize(obstacles_x_.size());
-    for (int i = 0; i < obstacles_x_.size(); i++) {
+    int size = static_cast<int>(obstacles_x_.size()); // Cast to int to get rid of comparison warning (size_t)
+    
+    for (int i = 0; i < size; i++) {
       obstacle_array_.markers[i].header.frame_id = "nusim/world";
       obstacle_array_.markers[i].header.stamp = this->now();
       obstacle_array_.markers[i].ns = "obstacles";
@@ -143,8 +146,8 @@ public:
       obstacle_array_.markers[i].pose.position.x = obstacles_x_[i];
       obstacle_array_.markers[i].pose.position.y = obstacles_y_[i];
       obstacle_array_.markers[i].pose.position.z = arena_height / 2;
-      obstacle_array_.markers[i].scale.x = obstacles_r_*2;
-      obstacle_array_.markers[i].scale.y = obstacles_r_*2;
+      obstacle_array_.markers[i].scale.x = obstacles_r_ * 2;
+      obstacle_array_.markers[i].scale.y = obstacles_r_ * 2;
       obstacle_array_.markers[i].scale.z = arena_height;
       obstacle_array_.markers[i].pose.orientation.w = 1.0;
       obstacle_array_.markers[i].color.a = 1.0;
