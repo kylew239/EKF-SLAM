@@ -115,3 +115,169 @@ TEST_CASE("Stream extraction operator >>", "[vector]"){
     REQUIRE_THAT(emptyV.x, Catch::Matchers::WithinRel(-1.3));
     REQUIRE_THAT(emptyV.y, Catch::Matchers::WithinRel(2.7));
 }
+
+TEST_CASE("Add operator +", "[vector]"){
+    Vector2D v1 = {-1.3, 2.7};
+    Vector2D v2 = {0.8, 5.2};
+    Vector2D v3 = {-3.1, -5.7};
+
+    Vector2D v12 = v1 + v2;
+    REQUIRE_THAT(v12.x, Catch::Matchers::WithinRel(-0.5));
+    REQUIRE_THAT(v12.y, Catch::Matchers::WithinRel(7.9));
+
+    Vector2D v13 = v1 + v3;
+    REQUIRE_THAT(v13.x, Catch::Matchers::WithinRel(-4.4));
+    REQUIRE_THAT(v13.y, Catch::Matchers::WithinRel(-3.0));
+
+    Vector2D v23 = v2 + v3;
+    REQUIRE_THAT(v23.x, Catch::Matchers::WithinRel(-2.3));
+    REQUIRE_THAT(v23.y, Catch::Matchers::WithinRel(-0.5));
+    
+    Vector2D v32 = v3 + v2;
+    REQUIRE_THAT(v23.x, Catch::Matchers::WithinRel(v32.x));
+    REQUIRE_THAT(v23.y, Catch::Matchers::WithinRel(v32.y));
+}
+
+TEST_CASE("Add operator +=", "[vector]"){
+    Vector2D v1 = {-1.3, 2.7};
+    Vector2D v2 = {0.8, 5.2};
+    Vector2D v3 = {-3.1, -5.7};
+
+    v1 += v2;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinRel(-0.5));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinRel(7.9));
+
+    v1 += v3;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinRel(-3.6));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinRel(2.2));
+}
+
+TEST_CASE("Subtract Operator -", "[vector]"){
+    Vector2D v1 = {-1.3, 2.7};
+    Vector2D v2 = {0.8, 5.2};
+    Vector2D v3 = {-3.1, -5.7};
+
+    Vector2D v12 = v1 - v2;
+    REQUIRE_THAT(v12.x, Catch::Matchers::WithinRel(-2.1));
+    REQUIRE_THAT(v12.y, Catch::Matchers::WithinRel(-2.5));
+
+    Vector2D v13 = v1 - v3;
+    REQUIRE_THAT(v13.x, Catch::Matchers::WithinRel(1.8));
+    REQUIRE_THAT(v13.y, Catch::Matchers::WithinRel(8.4));
+
+    Vector2D v23 = v2 - v3;
+    REQUIRE_THAT(v23.x, Catch::Matchers::WithinRel(3.9));
+    REQUIRE_THAT(v23.y, Catch::Matchers::WithinRel(10.9));
+    
+    Vector2D v32 = v3 - v2;
+    REQUIRE_THAT(v32.x, Catch::Matchers::WithinRel(-3.9));
+    REQUIRE_THAT(v32.y, Catch::Matchers::WithinRel(-10.9));
+}
+
+TEST_CASE("Subtract Operator -=", "[vector]"){
+    Vector2D v1 = {-1.3, 2.7};
+    Vector2D v2 = {0.8, 5.2};
+    Vector2D v3 = {-3.1, -5.7};
+
+    v1 -= v2;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinRel(-2.1));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinRel(-2.5));
+
+    v1 -= v3;
+    REQUIRE_THAT(v1.x, Catch::Matchers::WithinRel(1.0));
+    REQUIRE_THAT(v1.y, Catch::Matchers::WithinRel(3.2));
+}
+
+TEST_CASE("Multiply operator *", "[vector]"){
+    Vector2D v = {-1.3, 2.7};
+
+    Vector2D res = v*1.0;
+    REQUIRE_THAT(res.x, Catch::Matchers::WithinRel(-1.3));
+    REQUIRE_THAT(res.y, Catch::Matchers::WithinRel(2.7));
+
+    res = v*2.0;
+    REQUIRE_THAT(res.x, Catch::Matchers::WithinRel(-2.6));
+    REQUIRE_THAT(res.y, Catch::Matchers::WithinRel(5.4));
+
+    res = -2.0*v;
+    REQUIRE_THAT(res.x, Catch::Matchers::WithinRel(2.6));
+    REQUIRE_THAT(res.y, Catch::Matchers::WithinRel(-5.4));
+
+    res = v*0.1;
+    REQUIRE_THAT(res.x, Catch::Matchers::WithinRel(-.13));
+    REQUIRE_THAT(res.y, Catch::Matchers::WithinRel(.27));
+
+    res = 1.5*v;
+    REQUIRE_THAT(res.x, Catch::Matchers::WithinRel(-1.95));
+    REQUIRE_THAT(res.y, Catch::Matchers::WithinRel(4.05));
+}
+
+TEST_CASE("Multiple Operator *=", "[vector]"){
+    Vector2D v = {-1.3, 2.7};
+    
+    v *= 1.0;
+    REQUIRE_THAT(v.x, Catch::Matchers::WithinRel(-1.3));
+    REQUIRE_THAT(v.y, Catch::Matchers::WithinRel(2.7));
+
+    v *= -2.0;
+    REQUIRE_THAT(v.x, Catch::Matchers::WithinRel(2.6));
+    REQUIRE_THAT(v.y, Catch::Matchers::WithinRel(-5.4));
+
+    v *= 0.1;
+    REQUIRE_THAT(v.x, Catch::Matchers::WithinRel(.26));
+    REQUIRE_THAT(v.y, Catch::Matchers::WithinRel(-.54));
+
+    v *= -0.5;
+    REQUIRE_THAT(v.x, Catch::Matchers::WithinRel(-.13));
+    REQUIRE_THAT(v.y, Catch::Matchers::WithinRel(.27));
+}
+
+TEST_CASE("Dot Product", "[vector]"){
+    Vector2D v1 = {-1.3, 2.7};
+    Vector2D v2 = {0.8, 5.2};
+    Vector2D v3 = {-3.1, -5.7};
+
+    double res12 = dot(v1, v2);
+    REQUIRE_THAT(res12, Catch::Matchers::WithinRel(13.0));
+
+    double res23 = dot(v2, v3);
+    REQUIRE_THAT(res23, Catch::Matchers::WithinRel(-32.12));
+
+    double res13 = dot(v1, v3);
+    REQUIRE_THAT(res13, Catch::Matchers::WithinRel(-11.36));
+
+    double res31 = dot(v3, v1);
+    REQUIRE_THAT(res31, Catch::Matchers::WithinRel(res13));
+}
+
+TEST_CASE("Magnitude", "[vector]"){
+    Vector2D v1 = {-1.3, 2.7};
+    REQUIRE_THAT(magnitude(v1), Catch::Matchers::WithinRel(2.996, 0.001));
+
+    Vector2D v2 = {0.8, 5.2};
+    REQUIRE_THAT(magnitude(v2), Catch::Matchers::WithinRel(5.261, 0.001));
+
+    Vector2D v3 = {-3.1, -5.7};
+    REQUIRE_THAT(magnitude(v3), Catch::Matchers::WithinRel(6.488, 0.001));
+
+    Vector2D v4 = {3.0, 4.0};
+    REQUIRE_THAT(magnitude(v4), Catch::Matchers::WithinRel(5.0));
+}
+
+TEST_CASE("Angle", "[vector]"){
+    Vector2D v1 = {-1.3, 2.7};
+    Vector2D v2 = {0.8, 5.2};
+    Vector2D v3 = {-3.1, -5.7};
+
+    double ang12 = angle(v1, v2);
+    REQUIRE_THAT(ang12, Catch::Matchers::WithinRel(0.601, 0.001));
+
+    double ang13 = angle(v1, v3);
+    REQUIRE_THAT(ang13, Catch::Matchers::WithinRel(2.195, 0.001));
+
+    double ang23 = angle(v2, v3);
+    REQUIRE_THAT(ang23, Catch::Matchers::WithinRel(2.796, 0.001));
+
+    double ang32 = angle(v3, v2);
+    REQUIRE_THAT(ang32, Catch::Matchers::WithinRel(ang23, 0.001));
+}

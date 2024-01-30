@@ -54,4 +54,53 @@ namespace turtlelib{
         is >> v.x >> v.y; // Read double values, stopping at spaces, and store into variable
         return is;
     }
+
+    Vector2D & Vector2D::operator+=(const Vector2D & v){
+        // can do += because these are all doubles
+        x += v.x;
+        y += v.y;
+        return *this;
+    }
+
+    Vector2D & Vector2D::operator-=(const Vector2D & v){
+        // can do += because these are all doubles
+        x -= v.x;
+        y -= v.y;
+        return *this;
+    }
+
+    Vector2D & Vector2D::operator*=(const double s){
+        // can do += because these are all doubles
+        x *= s;
+        y *= s;
+        return *this;
+    }
+
+    Vector2D operator+(Vector2D v1, const Vector2D & v2){
+        return v1+=v2;
+    }
+
+    Vector2D operator-(Vector2D v1, const Vector2D & v2){
+        return v1-=v2;
+    }
+
+    Vector2D operator*(Vector2D v, const double s){
+        return v*=s;
+    }
+
+    Vector2D operator*(const double s, Vector2D v){
+        return v*=s;
+    }
+
+    double dot(const Vector2D & v1, const Vector2D & v2){
+        return v1.x*v2.x + v1.y*v2.y;
+    }
+
+    double magnitude(const Vector2D & v){
+        return std::sqrt(v.x*v.x + v.y*v.y);
+    }
+
+    double angle(const Vector2D & v1, const Vector2D & v2){
+        return std::acos(dot(v1, v2) / (magnitude(v1)*magnitude(v2)) );
+    }
 }
