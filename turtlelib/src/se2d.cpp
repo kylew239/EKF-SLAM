@@ -104,4 +104,19 @@ namespace turtlelib
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs){
         return lhs*=rhs;
     }
+
+    Transform2D integrate_twist(const Twist2D & tw){
+        // Pure translation
+        // Use almost equal in case of floating point precision math
+        if(almost_equal(tw.omega, 0.0)){
+            return Transform2D{{tw.x, tw.y}};
+        }
+
+        Transform2D t {{tw.y / tw.omega,
+                      -tw.x / tw.omega}};
+        Transform2D r {tw.omega};
+
+        return t.inv() * r * t;
+    }
+
 }

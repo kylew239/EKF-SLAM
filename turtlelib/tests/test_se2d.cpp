@@ -208,3 +208,32 @@ using namespace turtlelib;
         REQUIRE_THAT(tf3.translation().x, Catch::Matchers::WithinRel(-0.867, 0.001));
         REQUIRE_THAT(tf3.translation().y, Catch::Matchers::WithinRel(1.353, 0.001));
     }
+
+    TEST_CASE("Integrating twist", "[twist]"){
+        SECTION("Pure translation"){
+            Twist2D tw = {0.0, -0.32, 1.35};
+            Transform2D tf = integrate_twist(tw);
+
+            REQUIRE_THAT(tf.translation().x, Catch::Matchers::WithinRel(tw.x, 0.001));
+            REQUIRE_THAT(tf.translation().y, Catch::Matchers::WithinRel(tw.y, 0.001));
+            REQUIRE_THAT(tf.rotation(), Catch::Matchers::WithinRel(0.0, 0.001));
+        }
+
+        SECTION("Pure rotation"){
+            Twist2D tw = {0.23, 0.0, 0.0};
+            Transform2D tf = integrate_twist(tw);
+
+            REQUIRE_THAT(tf.translation().x, Catch::Matchers::WithinRel(0.0, 0.001));
+            REQUIRE_THAT(tf.translation().y, Catch::Matchers::WithinRel(0.0, 0.001));
+            REQUIRE_THAT(tf.rotation(), Catch::Matchers::WithinRel(0.23, 0.001));
+        }
+
+        SECTION("Rotation and translation"){
+            Twist2D tw = {0.23, -0.32, 1.35};
+            Transform2D tf = integrate_twist(tw);
+
+            REQUIRE_THAT(tf.translation().x, Catch::Matchers::WithinRel(-.472, 0.001));
+            REQUIRE_THAT(tf.translation().y, Catch::Matchers::WithinRel(1.301, 0.001));
+            REQUIRE_THAT(tf.rotation(), Catch::Matchers::WithinRel(0.23, 0.001));
+        }
+    }
