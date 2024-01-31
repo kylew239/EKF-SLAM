@@ -127,9 +127,9 @@ namespace turtlelib
     /// HINT: This function should be implemented in terms of *=
     Transform2D operator*(Transform2D lhs, const Transform2D & rhs);
 
-    /// @brief Compute the transformation corresponding to a constant twist for one time-unit
-    /// @param tw The twist to follow
-    /// @return The transform that corresponds to following the twist for one time-unit
+    /// \brief Compute the transformation corresponding to a constant twist for one time-unit
+    /// \param tw The twist to follow
+    /// \return The transform that corresponds to following the twist for one time-unit
     Transform2D integrate_twist(const Twist2D & tw);
 }
 

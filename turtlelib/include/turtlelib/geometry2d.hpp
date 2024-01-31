@@ -91,19 +91,19 @@ namespace turtlelib
         /// NOTE: Adding the operator overloads to the struct for easier access to Vector2D vars
         /// NOTE: This decision was influenced by the structure of the Transform2D class in se2d.hpp
 
-        /// @brief Operator overload for adding 2 vectors tegether
-        /// @param v The vector to be added
-        /// @return A reference to the original, modified vector
+        /// \brief Operator overload for adding 2 vectors tegether
+        /// \param v The vector to be added
+        /// \return A reference to the original, modified vector
         Vector2D & operator+=(const Vector2D & v);
 
-        /// @brief Operator overload from subtracting vectors
-        /// @param v The vector the subtract
-        /// @return A reference to the original, modified vector
+        /// \brief Operator overload from subtracting vectors
+        /// \param v The vector the subtract
+        /// \return A reference to the original, modified vector
         Vector2D & operator-=(const Vector2D & v);
 
-        /// @brief Operator overload for multiplying a vector with a scalar
-        /// @param s scalar to be multiplied
-        /// @return A reference to the original, modified vector
+        /// \brief Operator overload for multiplying a vector with a scalar
+        /// \param s scalar to be multiplied
+        /// \return A reference to the original, modified vector
         Vector2D & operator*=(const double s);
     };
 
@@ -151,45 +151,45 @@ namespace turtlelib
     /// get removes the next unprocessed character from the buffer.
     std::istream & operator>>(std::istream & is, Vector2D & v);
 
-    /// @brief Addes 2 vectors together, using +=
-    /// @param v1 The first vector to be added
-    /// @param v2 Thes second vector to be added
-    /// @return A new vector that is the sum of v1 and v2
+    /// \brief Addes 2 vectors together, using +=
+    /// \param v1 The first vector to be added
+    /// \param v2 Thes second vector to be added
+    /// \return A new vector that is the sum of v1 and v2
     Vector2D operator+(Vector2D v1, const Vector2D & v2);
 
-    /// @brief Subtracts 2 vectors, using -=
-    /// @param v1 The vector to subtract from
-    /// @param v2 The vector to subtract 
-    /// @return A new vector that is the difference bewteen v1 and v2
+    /// \brief Subtracts 2 vectors, using -=
+    /// \param v1 The vector to subtract from
+    /// \param v2 The vector to subtract 
+    /// \return A new vector that is the difference bewteen v1 and v2
     Vector2D operator-(Vector2D v1, const Vector2D & v2);
 
-    /// @brief Multiply a vector and a scalar
-    /// @param v The vector to multiply
-    /// @param s The scalar to multiply
-    /// @return A new vector that is the product of v and s
+    /// \brief Multiply a vector and a scalar
+    /// \param v The vector to multiply
+    /// \param s The scalar to multiply
+    /// \return A new vector that is the product of v and s
     Vector2D operator*(Vector2D v, const double s);
 
-    /// @brief Multiply a vector and a scalar, but with the scalar first
-    /// @param s The scalar to multiply
-    /// @param v The vector to multiply
-    /// @return A new vector that is the product of v and s
+    /// \brief Multiply a vector and a scalar, but with the scalar first
+    /// \param s The scalar to multiply
+    /// \param v The vector to multiply
+    /// \return A new vector that is the product of v and s
     Vector2D operator*(const double s, Vector2D v);
 
-    // @brief Compute the dot product of two vectors
-    /// @param v1 The first vector to use
-    /// @param v2 The second vector to use
-    /// @return The dot product value
+    /// \brief Compute the dot product of two vectors
+    /// \param v1 The first vector to use
+    /// \param v2 The second vector to use
+    /// \return The dot product value
     double dot(const Vector2D & v1, const Vector2D & v2);
 
-    /// @brief Compute the magnitude of a vector
-    /// @param v The vector to use
-    /// @return The magnitude of the vector
+    /// \brief Compute the magnitude of a vector
+    /// \param v The vector to use
+    /// \return The magnitude of the vector
     double magnitude(const Vector2D & v);
 
-    /// @brief Compute the angle between two vectors
-    /// @param v1 The first vector
-    /// @param v2 The second Vector
-    /// @return The angle bewteen the vectors, in radians
+    /// \brief Compute the angle between two vectors
+    /// \param v1 The first vector
+    /// \param v2 The second Vector
+    /// \return The angle bewteen the vectors, in radians
     double angle(const Vector2D & v1, const Vector2D & v2);
 }
 
