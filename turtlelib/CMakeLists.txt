@@ -6,8 +6,6 @@ cmake_minimum_required(VERSION 3.22)
 # find the c and c++ compilers
 project(turtlelib)
 
-set(HEADER_FILES include/turtlelib/geometry2d.hpp include/turtlelib/se2d.hpp include/turtlelib/svg.hpp)
-
 # Find your dependencies.
 # Many libraries ship with files that allow CMake to find them
 # Then general behavior is to call "find_package" but the options
@@ -20,7 +18,10 @@ set(HEADER_FILES include/turtlelib/geometry2d.hpp include/turtlelib/se2d.hpp inc
 # you don't need or want to.
 # name is the name of the library without the extension or lib prefix
 # name creates a cmake "target"
-add_library(turtlelib src/geometry2d.cpp src/se2d.cpp src/svg.cpp ${HEADER_FILES})
+add_library(turtlelib src/geometry2d.cpp
+                      src/se2d.cpp
+                      src/svg.cpp
+                      src/diff_drive.cpp)
 
 # Use target_include_directories so that #include"mylibrary/header.hpp" works
 # The use of the <BUILD_INTERFACE> and <INSTALL_INTERFACE> is because when
@@ -118,8 +119,13 @@ if(BUILD_TESTING)
     add_executable(test_svg tests/test_svg.cpp)
     target_link_libraries(test_svg turtlelib Catch2::Catch2WithMain)
 
+    # Diff Drive
+    add_executable(test_ddrive tests/test_diff_drive.cpp)
+    target_link_libraries(test_ddrive turtlelib Catch2::Catch2WithMain)
+
     # register the test with CTest, telling it what executable to run
     add_test(NAME Testing_geometry COMMAND test_geometry2d)
     add_test(NAME Testing_se2d COMMAND test_se2d)
     add_test(NAME Testing_svg COMMAND test_svg)
+    add_test(NAME Testing_Diff_Drive COMMAND test_ddrive)
 endif()

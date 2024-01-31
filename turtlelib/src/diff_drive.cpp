@@ -50,12 +50,13 @@ namespace turtlelib{
 
         // Update config based on calculations
         config = {
-            t_wb_new.translation().x,
-            t_wb_new.translation().y,
-            t_wb_new.rotation()
+            config.x + t_wb_new.translation().x,
+            config.y + t_wb_new.translation().y,
+            config.th + t_wb_new.rotation()
         };
         return config;
     }
+
     wheels DiffDrive::ik(const Twist2D & tw){
         // diff drive robots cannot move in the y direction
         if(!almost_equal(tw.y, 0.0)){
@@ -65,6 +66,10 @@ namespace turtlelib{
             (tw.x - tw.omega * track_w) / wheel_r,
             (tw.x + tw.omega * track_w) / wheel_r,
         };
+    }
+
+    state DiffDrive::get_config(){
+        return config;
     }
 
 }
