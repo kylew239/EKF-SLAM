@@ -82,8 +82,8 @@ namespace turtlelib{
         /// \return The wheel velocities
         wheels ik(const Twist2D & tw);
 
-        /// @brief Get the current configuration of the robot's position
-        /// @return The robots position
+        /// \brief Get the current configuration of the robot's position
+        /// \return The robots position
         state get_config();
     };
 
