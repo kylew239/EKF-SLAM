@@ -27,12 +27,14 @@ namespace turtlelib{
 
     state DiffDrive::fk(const double new_left, const double new_right){
         // Velocity from new positions
+        // Refer to the second page of doc/Kinematics.pdf, step 1
         wheels vel = {new_left - wheelPos.l, new_right - wheelPos.r};
 
         // Update wheel angles
         wheelPos = {new_left, new_right};
 
         // Twist for calculations
+        // Refer to the second page of doc/Kinematics.pdf, step 2
         Twist2D tw = {
             wheel_r/(track_w*2.0) * (vel.r - vel.l),
             wheel_r/2.0 * (vel.r + vel.l),
@@ -40,12 +42,14 @@ namespace turtlelib{
         };
 
         // Transform needed to get to new wheel positions
+        // Refer to the second page of doc/Kinematics.pdf, step 3
         Transform2D t = integrate_twist(tw);
 
         // Transform from world to base
         Transform2D t_wb = {{config.x, config.y}, config.th};
 
         // Calculate transform to new location of the robot
+        // Refer to the second page of doc/Kinematics.pdf, step 4
         Transform2D t_wb_new = t_wb * t;
 
         // Update config based on calculations
@@ -62,7 +66,7 @@ namespace turtlelib{
         if(!almost_equal(tw.y, 0.0)){
             throw std::logic_error("Twist is invaled for a differential drive robot");
         }
-        return wheels{
+        return wheels{ // Refer to the first page of doc/Kinematics.pdf
             (tw.x - tw.omega * track_w) / wheel_r,
             (tw.x + tw.omega * track_w) / wheel_r,
         };
