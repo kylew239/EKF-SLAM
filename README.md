@@ -5,3 +5,4 @@
 This repository consists of several ROS packages
 - nusim - A package for simulating and visualizing the turtlebots
 - nuturtle_description - A package for defining the robot description
+- nuturtle_control - A package for controlling the simulation robot and the real robot
