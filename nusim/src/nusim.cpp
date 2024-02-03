@@ -199,12 +199,6 @@ private:
 
     // Broadcast Transform
     tf_stamped_.header.stamp = this->now();
-    // tf_stamped_.transform.x =
-    // tf_stamped_.transform.y =
-    // tf_stamped_.transform.rotation.x =
-    // tf_stamped_.transform.rotation.y =
-    // tf_stamped_.transform.rotation.z =
-    // tf_stamped_.transform.rotation.w =
     broadcaster_->sendTransform(tf_stamped_);
   }
 

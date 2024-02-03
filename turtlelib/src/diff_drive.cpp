@@ -76,4 +76,9 @@ namespace turtlelib{
         return config;
     }
 
+    wheels DiffDrive::set_wheels(wheels pos){
+        wheelPos = pos;
+        return pos;
+    }
+
 }

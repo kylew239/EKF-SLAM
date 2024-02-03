@@ -85,6 +85,11 @@ namespace turtlelib{
         /// \brief Get the current configuration of the robot's position
         /// \return The robots position
         state get_config();
+
+        /// @brief Set the positions of the wheels
+        /// @param pos Positions of the wheels
+        /// @return The new positions of the wheels
+        wheels set_wheels(wheels pos);
     };
 
 }
