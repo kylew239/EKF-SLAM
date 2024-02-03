@@ -236,4 +236,28 @@ using namespace turtlelib;
             REQUIRE_THAT(tf.translation().y, Catch::Matchers::WithinRel(1.301, 0.001));
             REQUIRE_THAT(tf.rotation(), Catch::Matchers::WithinRel(0.23, 0.001));
         }
+
+        SECTION("Tests from Stella"){ // Stela Yu
+            // Only Translation
+            Twist2D tw = Twist2D{0, 1, 2};
+            Transform2D Tbbprime = integrate_twist(tw);
+            REQUIRE_THAT(Tbbprime.translation().x, Catch::Matchers::WithinAbs(1.0, 1e-5));
+            REQUIRE_THAT(Tbbprime.translation().y, Catch::Matchers::WithinAbs(2.0, 1e-5));
+            REQUIRE_THAT(Tbbprime.rotation(), Catch::Matchers::WithinAbs(0.0, 1e-5));
+
+            // Only Rotation
+            tw = Twist2D{PI, 0, 0};
+            Tbbprime = integrate_twist(tw);
+            REQUIRE_THAT(Tbbprime.translation().x, Catch::Matchers::WithinAbs(0.0, 1e-5));
+            REQUIRE_THAT(Tbbprime.translation().y, Catch::Matchers::WithinAbs(0.0, 1e-5));
+            REQUIRE_THAT(Tbbprime.rotation(), Catch::Matchers::WithinAbs(PI, 1e-5));
+            
+            // Translation + Rotation
+            tw = Twist2D{-1.24, -2.15,-2.92};
+            Tbbprime = integrate_twist(tw);
+            REQUIRE_THAT(Tbbprime.translation().x, Catch::Matchers::WithinAbs(-3.229863264722, 1e-5));
+            REQUIRE_THAT(Tbbprime.translation().y, Catch::Matchers::WithinAbs(-1.05645265317421, 1e-5));
+            REQUIRE_THAT(Tbbprime.rotation(), Catch::Matchers::WithinAbs(-1.24, 1e-5));
+        }
     }
+
