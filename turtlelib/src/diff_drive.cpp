@@ -25,6 +25,7 @@ namespace turtlelib{
         wheelPos = {left, right};
     }
 
+    // ############################ Begin_Citation [4] ############################
     state DiffDrive::fk(const double new_left, const double new_right){
         // Velocity from new positions
         // Refer to the second page of doc/Kinematics.pdf, step 1
@@ -71,6 +72,7 @@ namespace turtlelib{
             (tw.x + tw.omega * track_w) / wheel_r,
         };
     }
+    // ############################ End_Citation [4]  #############################
 
     state DiffDrive::get_config(){
         return config;

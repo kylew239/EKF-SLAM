@@ -1,4 +1,5 @@
-Worked with: [Max Palay, Carter DiOrio, Courtney Smith, Allen Liu, Anuj Natraj, Zachary Alves, Nader Ahmed]
+Worked with: [Max Palay, Carter DiOrio, Courtney Smith, Allen Liu, Anuj Natraj, Zachary Alves, Nader Ahmed, Ishani Narwankar]
 [1] ChatGPT. Used on 1/11/2024, in ./nuturtle_description/README.md. Transcript is in ./chatgpt/transcript1.md.
 [2] test_se2d tests obtained from Max Palay: [Twist2D<<, Twist2D>>, Transform2D(point), Transform2D(vector), Transform2D*=]
 [3] test_se2d tests obtained from Stella Yu: [Integrating twist]
+[4] "Modern Robotics" by Kevin Lynch and Frank Park, Chapter 13.
