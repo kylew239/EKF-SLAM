@@ -90,6 +90,10 @@ namespace turtlelib{
         /// @param pos Positions of the wheels
         /// @return The new positions of the wheels
         wheels set_wheels(wheels pos);
+
+        /// @brief Get the positions of the wheels
+        /// @return Positions of the wheels
+        wheels get_wheels();
     };
 
 }

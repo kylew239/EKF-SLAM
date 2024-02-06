@@ -233,8 +233,8 @@ private:
     timestep_++;
 
     // Update wheel positions and robot state
-    double l_diff = wheel_vel.l / rate_;
-    double r_diff = wheel_vel.r / rate_;
+    double l_diff = wheel_vel.l / rate_ + diff_drive.get_wheels().l;
+    double r_diff = wheel_vel.r / rate_ + diff_drive.get_wheels().r;
     diff_drive.fk(l_diff, r_diff);
 
     // Update transform

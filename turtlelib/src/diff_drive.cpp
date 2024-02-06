@@ -83,4 +83,8 @@ namespace turtlelib{
         return pos;
     }
 
+    wheels DiffDrive::get_wheels(){
+        return wheelPos;
+    }
+
 }

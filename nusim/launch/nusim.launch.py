@@ -1,9 +1,11 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, Shutdown, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
-from launch.substitutions import PathJoinSubstitution
+from launch.substitutions import PathJoinSubstitution, EqualsSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.conditions import IfCondition
+
 
 
 def generate_launch_description():
@@ -13,7 +15,13 @@ def generate_launch_description():
                               default_value=PathJoinSubstitution([FindPackageShare("nusim"),
                                                                   "config",
                                                                   "basic_world.yaml"]),
-                              description="Paramter File file"),
+                              description="Parameter File file"),
+        DeclareLaunchArgument('use_jsp',
+                              default_value="true",
+                              description="Launches joint state publisher (true | false)"),
+        DeclareLaunchArgument('use_rviz',
+                              default_value="true",
+                              description="Determines whether or not to use rviz"),
 
         # Include launch
         IncludeLaunchDescription(
@@ -24,7 +32,8 @@ def generate_launch_description():
             ]),
             launch_arguments={
                 'color': 'red',
-                'use_rviz': 'false'
+                'use_rviz': 'false',
+                'use_jsp': LaunchConfiguration('use_jsp')
             }.items(),
         ),
 
@@ -37,7 +46,8 @@ def generate_launch_description():
             arguments=['-d', PathJoinSubstitution([FindPackageShare('nusim'),
                                                    'config',
                                                    'nusim.rviz'])],
-            on_exit=Shutdown()),
+            on_exit=Shutdown(),
+            condition=IfCondition(EqualsSubstitution(LaunchConfiguration('use_rviz'), "true"))),
 
         Node(
             package='nusim',

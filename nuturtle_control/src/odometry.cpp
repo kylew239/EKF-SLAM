@@ -26,7 +26,7 @@ public:
     // Parameters
     declare_parameter("rate", 200.0);
     declare_parameter("body_id", rclcpp::PARAMETER_STRING);
-    declare_parameter("odom_id", "odom");
+    declare_parameter("odom_id", rclcpp::PARAMETER_STRING);
     declare_parameter("wheel_left", rclcpp::PARAMETER_STRING);
     declare_parameter("wheel_right", rclcpp::PARAMETER_STRING);
     declare_parameter("wheel_radius", rclcpp::PARAMETER_DOUBLE);
