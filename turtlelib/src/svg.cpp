@@ -27,7 +27,7 @@ namespace turtlelib{
     }
 
     int Drawer::circle(Point2D center, std::string stroke, std::string fill){
-        Point2D pixel = convertToPixel(center);
+        Point2D pixel = convertToPixel(center); //const auto
         svgData << "<circle cx=\"" << pixel.x;
         svgData << "\" cy=\"" << pixel.y;
         svgData << "\" r=\"3\" ";
@@ -38,7 +38,7 @@ namespace turtlelib{
     }
 
     int Drawer::vector(Point2D head, Point2D tail, std::string stroke){
-        Point2D pixelH = convertToPixel(head);
+        Point2D pixelH = convertToPixel(head); // const auto
         Point2D pixelT = convertToPixel(tail);
         svgData << "<line x1=\"" << pixelH.x << "\" x2=\"" << pixelT.x << "\" ";
         svgData << "y1=\"" << pixelH.y << "\" y2=\"" << pixelT.y << "\" ";
@@ -58,6 +58,6 @@ namespace turtlelib{
 
     Point2D Drawer::convertToPixel(Point2D point){
         return Point2D{point.x*ppi + centerx,
-                       -point.y*ppi + centery};
+            -point.y*ppi + centery}; // Point2D unnecessary
     }
 }

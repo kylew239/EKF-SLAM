@@ -4,7 +4,7 @@
 
 namespace turtlelib{
     double normalize_angle(double rad){
-        double twoPI = 2*PI;
+        double twoPI = 2*PI; // const auto 2.0*
         while(rad > PI){
             rad -= twoPI;
         }
@@ -25,19 +25,20 @@ namespace turtlelib{
             is.get();   // Get rid of the [ at the start
         }
         is >> p.x >> p.y; // Read double values, stopping at spaces, and store into variable
+        //does not eat the ]
         return is;
     }
 
     Vector2D operator-(const Point2D & head, const Point2D & tail){
-        return Vector2D{head.x-tail.x, head.y-tail.y};
+        return Vector2D{head.x-tail.x, head.y-tail.y}; // no need for Vector2D here
     }
 
     Point2D operator+(const Point2D & tail, const Vector2D & disp){
-        return Point2D{tail.x+disp.x, tail.y+disp.y};
+        return Point2D{tail.x+disp.x, tail.y+disp.y}; // no need for Point2D here
     }
 
     Vector2D normalize(const Vector2D & v){
-        double mag = std::sqrt(std::pow(v.x, 2.0) + std::pow(v.y, 2.0));
+        double mag = std::sqrt(std::pow(v.x, 2.0) + std::pow(v.y, 2.0)); // const auto mag
         return Vector2D{v.x/mag, v.y/mag};
     }
 

@@ -20,31 +20,31 @@ namespace turtlelib
         return is;
     }
 
-    Transform2D::Transform2D(){
+    Transform2D::Transform2D(){ // initializer lists
         theta = 0.0;
         x = 0.0;
         y = 0.0;
     }
 
-    Transform2D::Transform2D(Vector2D trans){
+    Transform2D::Transform2D(Vector2D trans){// initializer lists
         theta = 0.0;
         x = trans.x;
         y = trans.y;
     }
 
-    Transform2D::Transform2D(double radians){
+    Transform2D::Transform2D(double radians)// initializer lists{
         theta = radians;
         x = 0.0;
         y = 0.0;
     }
 
-    Transform2D::Transform2D(Vector2D trans, double radians){
+    Transform2D::Transform2D(Vector2D trans, double radians)// initializer lists{
         theta = radians;
         x = trans.x;
         y = trans.y;
     }
 
-    Point2D Transform2D::operator()(Point2D p) const{
+Point2D Transform2D::operator()(Point2D p) const{// point2d not tneeded
         return Point2D{p.x*std::cos(theta) - p.y*std::sin(theta) + x,
                        p.x*std::sin(theta) + p.y*std::cos(theta) + y};
     }
@@ -55,7 +55,7 @@ namespace turtlelib
     }
 
     Twist2D Transform2D::operator()(Twist2D twist) const{
-        return Twist2D{
+        return Twist2D{ // twist2d Not needed
             twist.omega,
             y*twist.omega + twist.x*std::cos(theta) - twist.y*std::sin(theta),
             -x*twist.omega + twist.x*std::sin(theta) + twist.y*std::cos(theta)
@@ -89,7 +89,7 @@ namespace turtlelib
     }
 
     std::istream & operator>>(std::istream & is, Transform2D & tf){
-        double deg, x, y;
+        double deg, x, y; // unitialized variables
         // check if input as "deg:" format
         if(is.peek() == 'd'){
             std::string temp1, temp2, temp3;

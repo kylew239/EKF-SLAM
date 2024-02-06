@@ -129,22 +129,24 @@ public:
     // Check length of arrays
     if (obstacles_x_.size() != obstacles_y_.size()) {
       RCLCPP_ERROR(this->get_logger(), "Obstacle array lengths are not equal");
-      rclcpp::shutdown();
+      rclcpp::shutdown(); // throw an exceptional
     }
 
     // Build and publish
     obstacle_array_.markers.resize(obstacles_x_.size());
-    int size = static_cast<int>(obstacles_x_.size()); // Cast to int to get rid of comparison warning (size_t)
 
+    // right idea, wrong method. const auto size. the solution is to make i a size_t in the foor loop
+    int size = static_cast<int>(obstacles_x_.size()); // Cast to int to get rid of comparison warning (size_t)
+                   
     for (int i = 0; i < size; i++) {
-      obstacle_array_.markers[i].header.frame_id = "nusim/world";
+        obstacle_array_.markers[i].header.frame_id = "nusim/world"; // .at()
       obstacle_array_.markers[i].header.stamp = this->now();
       obstacle_array_.markers[i].ns = "obstacles";
       obstacle_array_.markers[i].id = i;
       obstacle_array_.markers[i].type = visualization_msgs::msg::Marker::CYLINDER;
       obstacle_array_.markers[i].action = visualization_msgs::msg::Marker::ADD;
-      obstacle_array_.markers[i].pose.position.x = obstacles_x_[i];
-      obstacle_array_.markers[i].pose.position.y = obstacles_y_[i];
+      obstacle_array_.markers[i].pose.position.x = obstacles_x_[i]; // .at.at
+      obstacle_array_.markers[i].pose.position.y = obstacles_y_[i]; //.at.at
       obstacle_array_.markers[i].pose.position.z = arena_height / 2;
       obstacle_array_.markers[i].scale.x = obstacles_r_ * 2;
       obstacle_array_.markers[i].scale.y = obstacles_r_ * 2;
