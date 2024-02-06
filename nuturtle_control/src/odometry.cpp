@@ -21,7 +21,7 @@ class Odometry : public rclcpp::Node
 {
 public:
   Odometry()
-  : Node("odomo")
+  : Node("odom")
   {
     // Parameters
     declare_parameter("rate", 200.0);
@@ -149,8 +149,8 @@ private:
   }
 
   void inital_pose_cb_(
-    const std::shared_ptr<nuturtle_control::srv::InitialPose::Request> request,
-    std::shared_ptr<nuturtle_control::srv::InitialPose>)
+    const std::shared_ptr<nuturtle_control::srv::InitialPose::Request>,
+    std::shared_ptr<nuturtle_control::srv::InitialPose::Response>)
   {
     // Reset pose
     odom_.pose.pose.position.x = 0;

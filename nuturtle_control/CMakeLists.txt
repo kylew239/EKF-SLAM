@@ -17,12 +17,14 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(std_srvs REQUIRED)
 
 # uncomment the following section in order to fill in
 # further dependencies manually.
 # find_package(<dependency> REQUIRED)
 add_executable(turtle_control_node src/turtle_control.cpp)
 add_executable(odom_node src/odometry.cpp)
+add_executable(circle_node src/circle.cpp)
 
 ament_target_dependencies(turtle_control_node
                           rclcpp
@@ -39,20 +41,26 @@ ament_target_dependencies(odom_node
                           tf2
                           tf2_ros)
 
+ament_target_dependencies(circle_node
+                          rclcpp
+                          std_srvs
+                          geometry_msgs)
+
 target_link_libraries(turtle_control_node turtlelib::turtlelib)
 target_link_libraries(odom_node turtlelib::turtlelib)
 
 # For custom Services
-rosidl_generate_interfaces(${PROJECT_NAME}_srv "srv/InitialPose.srv" LIBRARY_NAME ${PROJECT_NAME})
+rosidl_generate_interfaces(${PROJECT_NAME}_srv "srv/InitialPose.srv" "srv/Control.srv" LIBRARY_NAME ${PROJECT_NAME})
 rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME}_srv "rosidl_typesupport_cpp")
 
 target_link_libraries(odom_node "${cpp_typesupport_target}")
-
+target_link_libraries(circle_node "${cpp_typesupport_target}")
 
 
 install(TARGETS
   turtle_control_node
   odom_node
+  circle_node
   DESTINATION lib/${PROJECT_NAME}
 )
 
