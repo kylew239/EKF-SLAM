@@ -63,8 +63,8 @@ namespace turtlelib
     }
 
     Transform2D Transform2D::inv() const{
-        return Transform2D{Vector2D{-x*std::cos(theta)-y*std::sin(theta),
-                                    -y*std::cos(theta)+x*std::sin(theta)},
+        return Transform2D{{-x*std::cos(theta)-y*std::sin(theta),
+                            -y*std::cos(theta)+x*std::sin(theta)},
                            -theta};
     }
 

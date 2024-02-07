@@ -55,9 +55,9 @@ namespace turtlelib{
 
         // Update config based on calculations
         config = {
-            config.x + t_wb_new.translation().x,
-            config.y + t_wb_new.translation().y,
-            config.th + t_wb_new.rotation()
+            t_wb_new.translation().x,
+            t_wb_new.translation().y,
+            t_wb_new.rotation()
         };
         return config;
     }

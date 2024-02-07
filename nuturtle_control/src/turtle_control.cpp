@@ -15,6 +15,8 @@
 #include "nuturtlebot_msgs/msg/sensor_data.hpp"
 
 
+////////////// PUBLISHING A BUNCH OF 0s
+
 using namespace std::chrono_literals;
 
 class Turtle_control : public rclcpp::Node

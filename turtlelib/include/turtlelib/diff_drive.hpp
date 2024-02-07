@@ -11,13 +11,13 @@ namespace turtlelib{
     /// \brief Robot configuration
     struct state{
         /// \brief The x position of the robot
-        double x;
+        double x = 0;
 
         /// \brief The y position of the robot
-        double y;
+        double y = 0;
 
         /// \brief The orientation of the robot
-        double th;
+        double th = 0;
     };
 
     /// \brief Struct for keeping track of wheels

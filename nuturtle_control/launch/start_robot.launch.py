@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, Shutdown, IncludeLaunchDescription, GroupAction
+from launch.actions import DeclareLaunchArgument, Shutdown, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
@@ -21,14 +21,14 @@ def generate_launch_description():
                               default_value="false",
                               description='Determines whether or not rviz is used (true | false)'),
 
-        # # Publish Identity Transform
-        # Node(
-        #     package="tf2_ros",
-        #     executable="static_transform_publisher",
-        #     name="static_transform_odom",
-        #     arguments=['--frame-id', 'nusim/world',
-        #                '--child-frame-id', 'odom']
-        # ),
+        # Publish Identity Transform
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="static_transform_odom",
+            arguments=['--frame-id', 'nusim/world',
+                       '--child-frame-id', 'odom']
+        ),
 
         # use_rviz
         Node(
@@ -62,80 +62,81 @@ def generate_launch_description():
 
 
 
-        # # CMD_SRC
-        # Node(
-        #     package="turtlebot3_teleop",
-        #     executable="teleop_keyboard.py",
-        #     output="screen",
-        #     prefix="gnome-terminal",  # Launch in a separate terminal window
-        #     condition=IfCondition(EqualsSubstitution(
-        #         LaunchConfiguration('cmd_src'), "teleop"))
-        # ),
+        # CMD_SRC
+        Node(
+            package="turtlebot3_teleop",
+            executable="teleop_keyboard",
+            output="screen",
+            prefix=["x-term -e --command"],  # Launch in a separate terminal window
+            condition=IfCondition(EqualsSubstitution(
+                LaunchConfiguration('cmd_src'), "teleop"))
+        ),
 
-        # Node(
-        #     package="nuturtle_control",
-        #     executable="circle_node",
-        #     condition=IfCondition(EqualsSubstitution(
-        #         LaunchConfiguration('cmd_src'), "circle"))
-        # ),
+        Node(
+            package="nuturtle_control",
+            executable="circle_node",
+            condition=IfCondition(EqualsSubstitution(
+                LaunchConfiguration('cmd_src'), "circle"))
+        ),
 
 
         # # ROBOT
 
-        # # nusim
-        # # IncludeLaunchDescription(
-        # #     PathJoinSubstitution([
-        # #         FindPackageShare("nusim"),
-        # #         "launch",
-        # #         "nusim.launch.py"
-        # #     ]),
-        # #     launch_arguments={
-        # #         'use_rviz': 'false',
-        # #         'use_jsp': 'false'
-        # #     }.items(),
-        # #     condition=IfCondition(EqualsSubstitution(
-        # #         LaunchConfiguration('robot'), "nusim"))
-        # # ),
+        # nusim
+        IncludeLaunchDescription(
+            PathJoinSubstitution([
+                FindPackageShare("nusim"),
+                "launch",
+                "nusim.launch.py"
+            ]),
+            launch_arguments={
+                'use_rviz': 'false',
+                'use_jsp': 'false'
+            }.items(),
+            condition=IfCondition(EqualsSubstitution(
+                LaunchConfiguration('robot'), "nusim"))
+        ),
 
-        # # # Blue robot
-        # # IncludeLaunchDescription(
-        # #     PathJoinSubstitution([
-        # #         FindPackageShare("nuturtle_description"),
-        # #         "launch",
-        # #         "load_one.launch.py"
-        # #     ]),
-        # #     launch_arguments={
-        # #         'color': 'blue',
-        # #         'use_rviz': 'false',
-        # #         'use_jsp': 'false'
-        # #     }.items(),
-        # # ),
+        # Blue robot
+        IncludeLaunchDescription(
+            PathJoinSubstitution([
+                FindPackageShare("nuturtle_description"),
+                "launch",
+                "load_one.launch.py"
+            ]),
+            launch_arguments={
+                'color': 'blue',
+                'use_rviz': 'false',
+                'use_jsp': 'false'
+            }.items(),
+        ),
 
-        # Node(
-        #     package='nuturtle_control',
-        #     executable='turtle_control_node',
-        #     parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
-        #                                       "config",
-        #                                       "diff_params.yaml"])],
-        #     condition=IfCondition(EqualsSubstitution(
-        #         LaunchConfiguration('robot'), "nusim"))
-        # ),
+        Node(
+            package='nuturtle_control',
+            executable='turtle_control_node',
+            parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
+                                              "config",
+                                              "diff_params.yaml"])],
+            condition=IfCondition(EqualsSubstitution(
+                LaunchConfiguration('robot'), "nusim")),
+            remappings=[('wheel_cmd', 'red/wheel_cmd')]
+        ),
 
-        # Node(
-        #     package="nuturtle_control",
-        #     executable="odom_node",
-        #     condition=IfCondition(OrSubstitution(
-        #         EqualsSubstitution(LaunchConfiguration('robot'), "nusim"),
-        #         EqualsSubstitution(LaunchConfiguration('robot'), "localhost"))),
-        #     parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
-        #                                       "config",
-        #                                       "diff_params.yaml"]),
-        #                 {'body_id': 'blue/base_footprint'},
-        #                 {'odom_id': 'blue/odom'},
-        #                 {'wheel_left': 'wheel_left_joint'},
-        #                 {'wheel_right': 'wheel_right_join'}],
-        #     remappings=[('odom', 'blue/odom')]
-        # ),
+        Node(
+            package="nuturtle_control",
+            executable="odom_node",
+            condition=IfCondition(OrSubstitution(
+                EqualsSubstitution(LaunchConfiguration('robot'), "nusim"),
+                EqualsSubstitution(LaunchConfiguration('robot'), "localhost"))),
+            parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
+                                              "config",
+                                              "diff_params.yaml"]),
+                        {'body_id': 'blue/base_footprint'},
+                        {'odom_id': 'blue/odom'},
+                        {'wheel_left': 'wheel_left_joint'},
+                        {'wheel_right': 'wheel_right_join'}],
+            remappings=[('odom', 'blue/odom')]
+        ),
 
         
 

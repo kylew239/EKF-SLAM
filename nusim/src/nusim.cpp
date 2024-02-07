@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <sstream>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/qos.hpp"
@@ -240,6 +241,8 @@ private:
     // Update transform
     tf_stamped_.transform.translation.x = diff_drive.get_config().x;
     tf_stamped_.transform.translation.y = diff_drive.get_config().y;
+    
+    RCLCPP_ERROR(get_logger(), "x is: %lf  ||| y is : %lf", diff_drive.get_config().x, diff_drive.get_config().y);
     q.setRPY(0.0, 0.0, diff_drive.get_config().th);
     tf_stamped_.transform.rotation.x = q.x();
     tf_stamped_.transform.rotation.y = q.y();
@@ -251,8 +254,8 @@ private:
     broadcaster_->sendTransform(tf_stamped_);
 
     // Update and publish sensor data
-    sensor_.left_encoder = static_cast<int>(l_diff / enc_tick_per_rad_) % 4096;
-    sensor_.right_encoder = static_cast<int>(r_diff / enc_tick_per_rad_) % 4096;
+    sensor_.left_encoder = static_cast<int>(l_diff * enc_tick_per_rad_);
+    sensor_.right_encoder = static_cast<int>(r_diff * enc_tick_per_rad_);
     sensor_.stamp = this->now();
     sensor_data_pub_->publish(sensor_);
   }
