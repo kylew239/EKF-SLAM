@@ -132,10 +132,10 @@ private:
 
   void js_cb(const std::shared_ptr<sensor_msgs::msg::JointState> msg)
   {
+    const auto new_left = msg->position[0] + msg->velocity[0] / rate_;
+    const auto new_right = msg->position[1] + msg->velocity[1] / rate_;
     // Calculate updated odom
-    config = diff_drive.fk(
-      msg->position[0] + msg->velocity[0] / rate_,
-      msg->position[1] + msg->velocity[1] / rate_);
+    config = diff_drive.fk(new_left, new_right);
 
     // Update odom message
     odom_.pose.pose.position.x = config.x;
@@ -146,6 +146,12 @@ private:
     odom_.pose.pose.orientation.y = q.y();
     odom_.pose.pose.orientation.z = q.z();
     odom_.pose.pose.orientation.w = q.w();
+
+    turtlelib::Twist2D tw = diff_drive.get_body_twist(new_left, new_right);
+
+    odom_.twist.twist.linear.x = tw.x;
+    odom_.twist.twist.linear.y = tw.y;
+    odom_.twist.twist.angular.z = tw.omega;
   }
 
   void inital_pose_cb_(

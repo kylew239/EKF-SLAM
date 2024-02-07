@@ -26,21 +26,25 @@ namespace turtlelib{
     }
 
     // ############################ Begin_Citation [4] ############################
-    state DiffDrive::fk(const double new_left, const double new_right){
+    Twist2D DiffDrive::get_body_twist(const double new_left, const double new_right){
         // Velocity from new positions
         // Refer to the second page of doc/Kinematics.pdf, step 1
         wheels vel = {new_left - wheelPos.l, new_right - wheelPos.r};
 
-        // Update wheel angles
-        wheelPos = {new_left, new_right};
-
         // Twist for calculations
         // Refer to the second page of doc/Kinematics.pdf, step 2
-        Twist2D tw = {
+        return {
             wheel_r/(track_w*2.0) * (vel.r - vel.l),
             wheel_r/2.0 * (vel.r + vel.l),
             0.0
         };
+    }
+
+    state DiffDrive::fk(const double new_left, const double new_right){
+        Twist2D tw = get_body_twist(new_left, new_right);
+
+        // Update wheel angles
+        wheelPos = {new_left, new_right};
 
         // Transform needed to get to new wheel positions
         // Refer to the second page of doc/Kinematics.pdf, step 3

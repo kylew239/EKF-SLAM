@@ -125,17 +125,15 @@ def generate_launch_description():
         Node(
             package="nuturtle_control",
             executable="odom_node",
-            condition=IfCondition(OrSubstitution(
-                EqualsSubstitution(LaunchConfiguration('robot'), "nusim"),
-                EqualsSubstitution(LaunchConfiguration('robot'), "localhost"))),
+            condition=IfCondition(EqualsSubstitution(LaunchConfiguration('robot'), "nusim")),
             parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
                                               "config",
                                               "diff_params.yaml"]),
                         {'body_id': 'blue/base_footprint'},
-                        {'odom_id': 'blue/odom'},
+                        {'odom_id': 'odom'},
                         {'wheel_left': 'wheel_left_joint'},
                         {'wheel_right': 'wheel_right_join'}],
-            remappings=[('odom', 'blue/odom')]
+            remappings=[('joint_states', 'red/joint_states')]
         ),
 
         

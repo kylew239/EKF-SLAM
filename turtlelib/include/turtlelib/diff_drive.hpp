@@ -71,6 +71,12 @@ namespace turtlelib{
         /// \param right Start position of the right wheel
         DiffDrive(double track_width, double wheel_radius, double left, double right);
 
+        /// @brief Helper function to get the body twist given new positions
+        /// @param new_left New angle of the left wheel
+        /// \param new_right New angle of the right wheel
+        /// @return The twist of the body
+        Twist2D get_body_twist(const double new_left, const double new_right);
+
         /// \brief Calculates new configuration of the robot given two new wheel angles
         /// \param new_left New angle of the left wheel
         /// \param new_right New angle of the right wheel

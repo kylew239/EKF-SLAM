@@ -242,7 +242,6 @@ private:
     tf_stamped_.transform.translation.x = diff_drive.get_config().x;
     tf_stamped_.transform.translation.y = diff_drive.get_config().y;
     
-    RCLCPP_ERROR(get_logger(), "x is: %lf  ||| y is : %lf", diff_drive.get_config().x, diff_drive.get_config().y);
     q.setRPY(0.0, 0.0, diff_drive.get_config().th);
     tf_stamped_.transform.rotation.x = q.x();
     tf_stamped_.transform.rotation.y = q.y();
