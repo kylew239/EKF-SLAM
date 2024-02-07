@@ -44,13 +44,13 @@ public:
         std::placeholders::_1,
         std::placeholders::_2));
     
-    reverse_ = create_service<std_srvs::srv::Empty>("stop",
+    reverse_ = create_service<std_srvs::srv::Empty>("reverse",
         std::bind(
         &Circle::reverse_cb, this,
         std::placeholders::_1,
         std::placeholders::_2));
 
-     control_ = create_service<nuturtle_control::srv::Control>("stop",
+     control_ = create_service<nuturtle_control::srv::Control>("control",
         std::bind(
         &Circle::control_cb, this,
         std::placeholders::_1,
