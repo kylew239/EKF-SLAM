@@ -65,7 +65,7 @@ install(TARGETS
 )
 
 install(DIRECTORY
-  launch
+  launch config
   DESTINATION share/nuturtle_control
 )
 

@@ -39,5 +39,5 @@
 
 # Task E
 * E.1
-* E.2 (Untested)
+* E.2
 * E.3 (Untested)

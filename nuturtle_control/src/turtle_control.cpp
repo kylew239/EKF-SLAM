@@ -15,8 +15,6 @@
 #include "nuturtlebot_msgs/msg/sensor_data.hpp"
 
 
-////////////// PUBLISHING A BUNCH OF 0s
-
 using namespace std::chrono_literals;
 
 class Turtle_control : public rclcpp::Node
@@ -58,7 +56,8 @@ public:
     }
 
     // Vars
-    js_.name = {"left_wheel", "right_wheel"};
+    js_.header.frame_id = "red/base_link";
+    js_.name = {"wheel_left_link", "wheel_right_link"};
     js_.position = {0.0, 0.0};
     js_.velocity = {0.0, 0.0};
     diff_drive = {track_width_, wheel_radius_};

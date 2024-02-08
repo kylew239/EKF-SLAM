@@ -36,10 +36,9 @@ def generate_launch_description():
             executable='rviz2',
             name='rviz2_nusim',
             output='screen',
-            # TODO: Add config file for blue and red
-            # arguments=['-d', PathJoinSubstitution([FindPackageShare('nusim'),
-            #                                        'config',
-            #                                        'nusim.rviz'])],
+            arguments=['-d', PathJoinSubstitution([FindPackageShare('nuturtle_control'),
+                                                   'config',
+                                                   'red_blue.rviz'])],
             condition=IfCondition(AndSubstitution(
                 EqualsSubstitution(LaunchConfiguration('robot'), "nusim"),
                 EqualsSubstitution(LaunchConfiguration('use_rviz'), "true")))
@@ -119,7 +118,11 @@ def generate_launch_description():
                                               "diff_params.yaml"])],
             condition=IfCondition(EqualsSubstitution(
                 LaunchConfiguration('robot'), "nusim")),
-            remappings=[('wheel_cmd', 'red/wheel_cmd')]
+            remappings=[('wheel_cmd', 'red/wheel_cmd'),
+                        ('joint_states', 'red/joint_states'),
+                        ('sensor_data', 'red/sensor_data'),
+                        ('wheel_left_link', 'red/wheel_left_link'),
+                        ('wheel_right_link', 'red/wheel_right_link')]
         ),
 
         Node(
