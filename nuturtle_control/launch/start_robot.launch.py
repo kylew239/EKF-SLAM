@@ -49,10 +49,9 @@ def generate_launch_description():
             executable='rviz2',
             name='rviz2_none',
             output='screen',
-            # TODO: Add config file for blue
-            # arguments=['-d', PathJoinSubstitution([FindPackageShare('nusim'),
-            #                                        'config',
-            #                                        'nusim.rviz'])],
+            arguments=['-d', PathJoinSubstitution([FindPackageShare('nuturtle_control'),
+                                                   'config',
+                                                   'blue.rviz'])],
             condition=IfCondition(AndSubstitution(
                 EqualsSubstitution(LaunchConfiguration('robot'), "none"),
                 EqualsSubstitution(LaunchConfiguration('use_rviz'), "true")))

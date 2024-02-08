@@ -40,4 +40,4 @@
 # Task E
 * E.1
 * E.2
-* E.3 (Untested)
+* E.3
