@@ -44,7 +44,7 @@ The following arguments are available:
     * true: Launch rviz with different configuration files, depending on `robot`
 
 # Demo Video
-
+https://github.com/ME495-Navigation/EKF-SLAM/assets/59859207/de45c67a-7f25-41fc-be46-5fdcdcdeb7a0
 
 # Odometry Performance
 At the start, the odometry data is:
