@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, Shutdown, IncludeLaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
@@ -13,10 +13,12 @@ def generate_launch_description():
         # Args
         DeclareLaunchArgument('cmd_src',
                               default_value="none",
-                              description="Determines the `cmd_vel` publisher (teleop | circle | none)"),
+                              description="Determines the `cmd_vel` publisher" +
+                              "(teleop | circle | none)"),
         DeclareLaunchArgument('robot',
                               default_value="nusim",
-                              description="Determines whether the simulator or the actual robot is used (nusim | localhost | none)"),
+                              description="Determines whether the simulator or the actual robot" +
+                              "is used (nusim | localhost | none)"),
         DeclareLaunchArgument('use_rviz',
                               default_value="false",
                               description='Determines whether or not rviz is used (true | false)'),
@@ -131,7 +133,8 @@ def generate_launch_description():
         Node(
             package="nuturtle_control",
             executable="odom_node",
-            condition=IfCondition(EqualsSubstitution(LaunchConfiguration('robot'), "nusim")),
+            condition=IfCondition(EqualsSubstitution(
+                LaunchConfiguration('robot'), "nusim")),
             parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
                                               "config",
                                               "diff_params.yaml"]),
@@ -142,9 +145,9 @@ def generate_launch_description():
             remappings=[('joint_states', 'red/joint_states')]
         ),
 
-        
 
-        
+
+
 
 
 
@@ -163,7 +166,8 @@ def generate_launch_description():
         Node(
             package="nuturtle_control",
             executable="odom_node",
-            condition=IfCondition(EqualsSubstitution(LaunchConfiguration('robot'), "localhost")),
+            condition=IfCondition(EqualsSubstitution(
+                LaunchConfiguration('robot'), "localhost")),
             parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
                                               "config",
                                               "diff_params.yaml"]),
@@ -173,12 +177,4 @@ def generate_launch_description():
                         {'wheel_right': 'wheel_right_joint'}],
             remappings=[('joint_states', 'blue/joint_states')]
         ),
-
-
-
-
-
-
-        # None
-        
     ])

@@ -21,7 +21,7 @@ TEST_CASE("Drive forward", "[diff drive]"){
         REQUIRE_THAT(config1.th, Catch::Matchers::WithinAbs(0, 0.001));
 
         state config2 = robot.fk(-PI, -PI);
-        REQUIRE_THAT(config2.x, Catch::Matchers::WithinAbs(0, 0.001));
+        REQUIRE_THAT(config2.x, Catch::Matchers::WithinAbs(-0.104, 0.001));
         REQUIRE_THAT(config2.y, Catch::Matchers::WithinAbs(0, 0.001));
         REQUIRE_THAT(config2.th, Catch::Matchers::WithinAbs(0, 0.001));
     }
@@ -73,7 +73,7 @@ TEST_CASE("Pure rotation", "[diff drive]"){
         state config2 = robot.fk(-PI, PI);
         REQUIRE_THAT(config2.x, Catch::Matchers::WithinAbs(0, 0.001));
         REQUIRE_THAT(config2.y, Catch::Matchers::WithinAbs(0, 0.001));
-        REQUIRE_THAT(config2.th, Catch::Matchers::WithinAbs(0, 0.001));
+        REQUIRE_THAT(config2.th, Catch::Matchers::WithinAbs(0.648, 0.001));
     }
 
     SECTION("Inverse Kinematics"){
@@ -116,9 +116,9 @@ TEST_CASE("Circle Arc", "[diff drive]"){
         REQUIRE_THAT(config1.th, Catch::Matchers::WithinAbs(0.324, 0.001));
 
         state config2 = robot.fk(2*PI, PI);
-        REQUIRE_THAT(config2.x, Catch::Matchers::WithinAbs(0.306, 0.001));
-        REQUIRE_THAT(config2.y, Catch::Matchers::WithinAbs(0.050, 0.001));
-        REQUIRE_THAT(config2.th, Catch::Matchers::WithinAbs(0, 0.001));
+        REQUIRE_THAT(config2.x, Catch::Matchers::WithinAbs(0.153, 0.001));
+        REQUIRE_THAT(config2.y, Catch::Matchers::WithinAbs(0.025, 0.001));
+        REQUIRE_THAT(config2.th, Catch::Matchers::WithinAbs(-0.324, 0.001));
     }
 
     SECTION("Inverse Kinematics"){

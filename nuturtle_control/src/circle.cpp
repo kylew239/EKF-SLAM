@@ -9,7 +9,7 @@
 // #include "turtlelib/se2d.hpp"
 
 #include "geometry_msgs/msg/twist.hpp"
-#include "std_srvs/srv/empty.hpp"  
+#include "std_srvs/srv/empty.hpp"
 #include "nuturtle_control/srv/control.hpp"
 
 using namespace std::chrono_literals;
@@ -38,20 +38,23 @@ public:
     cmd_vel_pub_ = create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 10);
 
     // Services
-    stop_ = create_service<std_srvs::srv::Empty>("stop",
-        std::bind(
+    stop_ = create_service<std_srvs::srv::Empty>(
+      "stop",
+      std::bind(
         &Circle::reset_cb, this,
         std::placeholders::_1,
         std::placeholders::_2));
-    
-    reverse_ = create_service<std_srvs::srv::Empty>("reverse",
-        std::bind(
+
+    reverse_ = create_service<std_srvs::srv::Empty>(
+      "reverse",
+      std::bind(
         &Circle::reverse_cb, this,
         std::placeholders::_1,
         std::placeholders::_2));
 
-     control_ = create_service<nuturtle_control::srv::Control>("control",
-        std::bind(
+    control_ = create_service<nuturtle_control::srv::Control>(
+      "control",
+      std::bind(
         &Circle::control_cb, this,
         std::placeholders::_1,
         std::placeholders::_2));
@@ -103,10 +106,11 @@ private:
 
   void control_cb(
     const std::shared_ptr<nuturtle_control::srv::Control::Request> req,
-    std::shared_ptr<nuturtle_control::srv::Control::Response>){
-        tw.angular.z = req->velocity;
-        tw.linear.x = req->velocity * req->radius;
-    }
+    std::shared_ptr<nuturtle_control::srv::Control::Response>)
+  {
+    tw.angular.z = req->velocity;
+    tw.linear.x = req->velocity * req->radius;
+  }
 };
 
 int main(int argc, char * argv[])

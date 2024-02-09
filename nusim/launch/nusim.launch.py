@@ -7,7 +7,6 @@ from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
 
 
-
 def generate_launch_description():
     return LaunchDescription([
         # Args
