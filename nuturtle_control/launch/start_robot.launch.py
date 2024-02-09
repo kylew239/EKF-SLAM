@@ -13,7 +13,7 @@ def generate_launch_description():
         # Args
         DeclareLaunchArgument('cmd_src',
                               default_value="none",
-                              description="Determines the `cmd_vel` publisher (screen | circle | none)"),
+                              description="Determines the `cmd_vel` publisher (teleop | circle | none)"),
         DeclareLaunchArgument('robot',
                               default_value="nusim",
                               description="Determines whether the simulator or the actual robot is used (nusim | localhost | none)"),
