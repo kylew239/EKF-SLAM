@@ -5,7 +5,7 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
-from launch.substitutions import EqualsSubstitution, AndSubstitution, OrSubstitution
+from launch.substitutions import EqualsSubstitution, AndSubstitution, NotEqualsSubstitution
 
 
 def generate_launch_description():
@@ -27,7 +27,9 @@ def generate_launch_description():
             executable="static_transform_publisher",
             name="static_transform_odom",
             arguments=['--frame-id', 'nusim/world',
-                       '--child-frame-id', 'odom']
+                       '--child-frame-id', 'odom'],
+            condition=IfCondition(NotEqualsSubstitution(
+                LaunchConfiguration('robot'), "none"))
         ),
 
         # use_rviz
@@ -65,7 +67,7 @@ def generate_launch_description():
             package="turtlebot3_teleop",
             executable="teleop_keyboard",
             output="screen",
-            prefix=["x-term -e --command"],  # Launch in a separate terminal window
+            prefix=["xterm -e"],  # Launch in a separate terminal window
             condition=IfCondition(EqualsSubstitution(
                 LaunchConfiguration('cmd_src'), "teleop"))
         ),
@@ -107,6 +109,8 @@ def generate_launch_description():
                 'use_rviz': 'false',
                 'use_jsp': 'false'
             }.items(),
+            condition=IfCondition(NotEqualsSubstitution(
+                LaunchConfiguration('robot'), "localhost"))
         ),
 
         Node(
@@ -134,7 +138,7 @@ def generate_launch_description():
                         {'body_id': 'blue/base_footprint'},
                         {'odom_id': 'odom'},
                         {'wheel_left': 'wheel_left_joint'},
-                        {'wheel_right': 'wheel_right_join'}],
+                        {'wheel_right': 'wheel_right_joint'}],
             remappings=[('joint_states', 'red/joint_states')]
         ),
 
@@ -145,6 +149,30 @@ def generate_launch_description():
 
 
         # localhost
+        Node(
+            package='nuturtle_control',
+            executable='turtle_control_node',
+            parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
+                                              "config",
+                                              "diff_params.yaml"])],
+            condition=IfCondition(EqualsSubstitution(
+                LaunchConfiguration('robot'), "localhost")),
+            remappings=[('joint_states', 'blue/joint_states')]
+        ),
+
+        Node(
+            package="nuturtle_control",
+            executable="odom_node",
+            condition=IfCondition(EqualsSubstitution(LaunchConfiguration('robot'), "localhost")),
+            parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
+                                              "config",
+                                              "diff_params.yaml"]),
+                        {'body_id': 'blue/base_footprint'},
+                        {'odom_id': 'odom'},
+                        {'wheel_left': 'wheel_left_joint'},
+                        {'wheel_right': 'wheel_right_joint'}],
+            remappings=[('joint_states', 'blue/joint_states')]
+        ),
 
 
 
