@@ -18,16 +18,16 @@ namespace turtlelib{
     }
 
     std::string Drawer::save(){
-        svgData << "</svg>";
         std::ofstream file;
         file.open(filename);
         file << svgData.rdbuf();
+        file << "</svg>";
         file.close();
         return filename;
     }
 
-    int Drawer::circle(Point2D center, std::string stroke, std::string fill){
-        Point2D pixel = convertToPixel(center);
+    int Drawer::circle(Point2D center, const std::string & stroke, const std::string & fill){
+        const auto pixel = convertToPixel(center);
         svgData << "<circle cx=\"" << pixel.x;
         svgData << "\" cy=\"" << pixel.y;
         svgData << "\" r=\"3\" ";
@@ -37,16 +37,16 @@ namespace turtlelib{
         return 0;
     }
 
-    int Drawer::vector(Point2D head, Point2D tail, std::string stroke){
-        Point2D pixelH = convertToPixel(head);
-        Point2D pixelT = convertToPixel(tail);
+    int Drawer::vector(Point2D head, Point2D tail, const std::string & stroke){
+        const auto pixelH = convertToPixel(head);
+        const auto pixelT = convertToPixel(tail);
         svgData << "<line x1=\"" << pixelH.x << "\" x2=\"" << pixelT.x << "\" ";
         svgData << "y1=\"" << pixelH.y << "\" y2=\"" << pixelT.y << "\" ";
         svgData << "stroke=\"" << stroke << "\" stroke-width=\"5\" marker-start=\"url(#Arrow1Sstart)\" />\n";
         return 0;
     }
 
-    int Drawer::frame(Point2D center, Point2D x, Point2D y, std::string text, Point2D textLocation){
+    int Drawer::frame(Point2D center, Point2D x, Point2D y, const std::string & text, const Point2D & textLocation){
         Point2D textP = convertToPixel(textLocation);
         svgData << "<g>\n";
         vector(x, center, "red");
@@ -57,7 +57,7 @@ namespace turtlelib{
     }
 
     Point2D Drawer::convertToPixel(Point2D point){
-        return Point2D{point.x*ppi + centerx,
-                       -point.y*ppi + centery};
+        return {point.x*ppi + centerx,
+                -point.y*ppi + centery};
     }
 }

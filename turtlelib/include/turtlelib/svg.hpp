@@ -6,9 +6,9 @@
 #include <string>
 #include "turtlelib/geometry2d.hpp"
 
-#define ppi 96
-#define centerx 408.0
-#define centery 528.0
+constexpr double ppi = 96;
+constexpr double centerx = 408.0;
+constexpr double centery = 528.0;
 
 namespace turtlelib{
     class Drawer{
@@ -29,7 +29,7 @@ namespace turtlelib{
         /// \param name filename of the svg file
         Drawer(std::string name);
 
-        /// \brief Save the file
+        /// \brief Save the file while keeping it valid for additional changes
         /// \return the filename the svg was saved in
         std::string save();
 
@@ -38,14 +38,14 @@ namespace turtlelib{
         /// \param stroke color of the outline of the circle
         /// \param fill fill of the circle
         /// \return 0 for success
-        int circle(Point2D center, std::string stroke, std::string fill);
+        int circle(Point2D center, const std::string & stroke, const std::string & fill);
 
         /// \brief Draw a vector
         /// \param head head of the vector
         /// \param tail tail of the vector
         /// \param stroke color of the vector
         /// \return 0 for success
-        int vector(Point2D head, Point2D tail, std::string stroke);
+        int vector(Point2D head, Point2D tail, const std::string & stroke);
 
         /// \brief Draw a 2d coordinate frame
         /// \param center center of the coordinate frame
@@ -54,9 +54,10 @@ namespace turtlelib{
         /// \param text name of the frame
         /// \param textLocation coordinate for the location of the frame name
         /// \return 0 for success
-        int frame(Point2D center, Point2D x, Point2D y, std::string text, Point2D textLocation);
+        int frame(Point2D center, Point2D x, Point2D y, const std::string & text, const Point2D & textLocation);
 
     };
     
 }
+
 #endif
