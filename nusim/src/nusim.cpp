@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <sstream>
+#include <random>
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp/qos.hpp"
@@ -44,6 +45,8 @@ public:
     declare_parameter("wheel_radius", 0.033);
     declare_parameter("track_width", 0.16);
     declare_parameter("encoder_ticks_per_rad", 651.9);
+    declare_parameter("input_nosie", 0.0);
+    declare_parameter("slip_fraction", 0.0);
 
     // Vars
     rate_ = get_parameter("rate").as_double();
@@ -63,6 +66,10 @@ public:
     diff_drive = {track_width_, wheel_radius_};
     wheel_vel = {0.0, 0.0};
     enc_tick_per_rad_ = get_parameter("encoder_ticks_per_rad").as_double();
+    input_noise_ = get_parameter("input_noise").as_double();
+    slip_frac_ = get_parameter("slip_fraction").as_double();
+    wheel_vel_noise_ = std::normal_distribution<double> {0.0, input_noise_};
+    slip_dist = std::uniform_real_distribution<double> {-slip_frac_, slip_frac_};
 
     // qos profile transient local
     rclcpp::QoS qos(20);
@@ -203,6 +210,13 @@ private:
   turtlelib::wheels wheel_vel = {0.0, 0.0};
   nuturtlebot_msgs::msg::SensorData sensor_;
   double enc_tick_per_rad_;
+  double input_noise_, slip_frac_;
+  std::normal_distribution<double> wheel_vel_noise_;
+  std::uniform_real_distribution<double> slip_dist;
+
+  // Generate random number and seed it
+  std::random_device rd{};
+  std::mt19937 gen_{rd()};
 
   // Publishers
   rclcpp::Publisher<std_msgs::msg::UInt64>::SharedPtr time_publisher_;
@@ -233,10 +247,19 @@ private:
     time_publisher_->publish(msg);
     timestep_++;
 
-    // Update wheel positions and robot state
-    double l_diff = wheel_vel.l / rate_ + diff_drive.get_wheels().l;
-    double r_diff = wheel_vel.r / rate_ + diff_drive.get_wheels().r;
-    diff_drive.fk(l_diff, r_diff);
+    // Update wheel positions
+    double l_new = wheel_vel.l / rate_ + diff_drive.get_wheels().l;
+    double r_new = wheel_vel.r / rate_ + diff_drive.get_wheels().r;
+
+    // Calculate slip for wheels
+    // If slip frac is 0, then the normal distribution will be all zeros,
+    // so we don't need to check if slip_frac is 0
+    double l_new_slip = l_new * (1 + slip_dist(gen_));
+    double r_new_slip = r_new * (1 + slip_dist(gen_));
+
+    // Update robot position based on slip, then update wheels to be the actual location
+    diff_drive.fk(l_new_slip, r_new_slip);
+    diff_drive.set_wheels({l_new, r_new});
 
     // Update transform
     tf_stamped_.transform.translation.x = diff_drive.get_config().x;
@@ -253,8 +276,9 @@ private:
     broadcaster_->sendTransform(tf_stamped_);
 
     // Update and publish sensor data
-    sensor_.left_encoder = static_cast<int>(l_diff * enc_tick_per_rad_);
-    sensor_.right_encoder = static_cast<int>(r_diff * enc_tick_per_rad_);
+    // These use the non-slip wheel positions, since slip only affects robot pos
+    sensor_.left_encoder = static_cast<int>(l_new * enc_tick_per_rad_);
+    sensor_.right_encoder = static_cast<int>(r_new * enc_tick_per_rad_);
     sensor_.stamp = this->now();
     sensor_data_pub_->publish(sensor_);
   }
@@ -296,7 +320,18 @@ private:
     // Update wheel velocities
     wheel_vel =
     {msg->left_velocity * motor_cmd_per_rad_sec_, msg->right_velocity * motor_cmd_per_rad_sec_};
+
+    // Add noise to wheel commands
+    // We don't want to do this in the main timer since it will continuously add noise
+    // when no new wheel commands are received
+    if (wheel_vel.l != 0) {
+      wheel_vel.l += wheel_vel_noise_(gen_);
+    }
+    if (wheel_vel.r != 0) {
+      wheel_vel.r += wheel_vel_noise_(gen_);
+    }
   }
+
 };
 
 int main(int argc, char * argv[])
