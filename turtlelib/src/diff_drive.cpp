@@ -1,12 +1,12 @@
 #include "turtlelib/diff_drive.hpp"
 
 namespace turtlelib{
-    DiffDrive::DiffDrive(double track_width, double wheel_radius){
+    DiffDrive::DiffDrive(double track_width, double wheel_radius){ // initializer list
         track_w = track_width;
         wheel_r = wheel_radius;
     }
 
-    DiffDrive::DiffDrive(double track_width, double wheel_radius, state location){
+    DiffDrive::DiffDrive(double track_width, double wheel_radius, state location){ // initiailzer list
         track_w = track_width;
         wheel_r = wheel_radius;
         config = location;

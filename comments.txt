@@ -1,0 +1,7 @@
+There is a compiler warning.
+
+some tests fail
+
+There are errors in the rviz visualization that must be fixed
+
+nodes are missing comments explaining the ros api
