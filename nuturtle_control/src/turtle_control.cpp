@@ -51,7 +51,6 @@ public:
       rclcpp::ParameterType::PARAMETER_NOT_SET ||
       get_parameter("collision_radius").get_type() == rclcpp::ParameterType::PARAMETER_NOT_SET)
     {
-      RCLCPP_ERROR(this->get_logger(), "Parameters are not defined");
       rclcpp::shutdown();
     }
 
