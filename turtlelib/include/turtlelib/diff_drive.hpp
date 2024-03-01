@@ -100,6 +100,10 @@ namespace turtlelib{
         /// @brief Get the positions of the wheels
         /// @return Positions of the wheels
         wheels get_wheels();
+
+        /// @brief Set the position of the robot
+        /// @param location New location to set the robot to
+        void set_config(state location);
     };
 
 }

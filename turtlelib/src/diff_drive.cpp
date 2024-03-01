@@ -91,4 +91,9 @@ wheels DiffDrive::get_wheels()
   return wheelPos;
 }
 
+void DiffDrive::set_config(state location)
+{
+  config = location;
+}
+
 }

@@ -1,3 +1,37 @@
+/// \file
+/// \brief Simulation for the NUTurtle
+
+/// PARAMETERS:
+///     rate (bool): The rate in Hz that the simulation runs at
+///     x0 (double): Initial x position of the robot
+///     y0 (double): Initial y position of the robot
+///     th0 (double): Initial angle of the robot
+///     arena_x_length (double): X-length of the arena
+///     arena_y_length (double): Y-length of the arena
+///     obstacles_x (std::vector<double>): A list of x positions representing the obstacles
+///     obstacles_y (std::vector<double>): A list of y positions representing the obstacles
+///     obstacles_r (double): Radius of the obstacles
+///     motor_cmd_per_rad_sec (double): Motor command per rad/sec
+///     wheel_radius (double): Radius of the wheels
+///     track_width (double): Track width
+///     encoder_ticks_per_rad (double): Motor encoder ticks per radian
+///     input_noise (double): Standard deviation for the wheel command input noise
+///     slip_fraction (double): Max slip fraction for the wheels during motion
+///     max_range (double): Max range of the sensor for detecting obstacles
+///     basic_sensor_variance (double): Standard deviation for the obstacle sensing noise
+///     collision_radius (double): Radius of the robot collision
+/// PUBLISHERS:
+///     ~/obstacles (visualization_msgs/msg/MarkerArray): marker array containing the obstacles
+///     ~/walls (visualization_msgs/msg/MarkerArray): marker array containing the arena walls
+///     ~/timestep (std_msgs/msg/UInt64): timestep of the simulation
+///     red/sensor_data (nuturtlebot_msgs/msg/SensorData): simulated turtlebot sensor data
+///     fake_sensor (visualization_msgs/msg/MarkerArray): fake sensor data for the detected obstacles
+/// SUBSCRIBERS:
+///     wheel_cmd (nuturtlebot_msgs/msg/WheelCommands): wheel commands sent to the robot
+/// SERVERS:
+///     ~/reset (std_srvs/srv/Empty): Reset the robot to its initial location
+///     ~/teleport (nusim/srv/Teleport): teleports the robot to a provided location
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -49,6 +83,7 @@ public:
     declare_parameter("slip_fraction", 0.0);
     declare_parameter("max_range", 1.0);
     declare_parameter("basic_sensor_variance", 0.0);
+    declare_parameter("collision_radius", 0.11);
 
     // Vars
     rate_ = get_parameter("rate").as_double();
@@ -75,6 +110,7 @@ public:
     max_range_ = get_parameter("max_range").as_double();
     basic_sensor_var_ = get_parameter("basic_sensor_variance").as_double();
     fake_sensor_noise_ = std::normal_distribution<> {0.0, basic_sensor_var_};
+    collision_radius = get_parameter("collision_radius").as_double();
 
     // qos profile transient local
     rclcpp::QoS qos(20);
@@ -241,6 +277,7 @@ private:
   visualization_msgs::msg::MarkerArray fake_sensor_;
   double max_range_, basic_sensor_var_;
   std::normal_distribution<double> fake_sensor_noise_;
+  double collision_radius;
 
   // Generate random number and seed it
   std::random_device rd{};
@@ -269,6 +306,7 @@ private:
   rclcpp::TimerBase::SharedPtr sensor_timer_;
 
   // Callbacks
+  /// \brief main timer callback for the simulation
   void timer_callback()
   {
     // Update clock
@@ -294,6 +332,30 @@ private:
     diff_drive.fk(l_new_slip, r_new_slip);
     diff_drive.set_wheels({l_new, r_new});
 
+    // After updating robot position, check to see if collisions occured, then update if needed
+    turtlelib::Point2D curr_pos = {diff_drive.get_config().x, diff_drive.get_config().y};
+
+    // Iterate through each obstacle to check
+    for (size_t i = 0; i < obstacles_x_.size(); i++) {
+      turtlelib::Point2D obs = {obstacles_x_.at(i), obstacles_y_.at(i)};
+
+      // If close enough to collide
+      if (close(curr_pos, obs, collision_radius, obstacles_r_)) {
+        // Calculate collision angle
+        auto ang = std::atan2(curr_pos.y - obs.y, curr_pos.x - obs.x);
+
+        // calculate new position and update
+        turtlelib::state new_pos = {
+          obs.x + (collision_radius + obstacles_r_) * std::cos(ang),
+          obs.y + (collision_radius + obstacles_r_) * std::sin(ang),
+          diff_drive.get_config().th};
+        diff_drive.set_config(new_pos);
+
+        // then exit loop, no need to check the rest
+        break;
+      }
+    }
+
     // Update transform
     tf_stamped_.transform.translation.x = diff_drive.get_config().x;
     tf_stamped_.transform.translation.y = diff_drive.get_config().y;
@@ -316,6 +378,7 @@ private:
     sensor_data_pub_->publish(sensor_);
   }
 
+  /// \brief timer for the fake sensor. publishes obstacles within the sensor range
   void sensor_timer_cb()
   {
     // Get current position for transform
@@ -345,6 +408,7 @@ private:
     fake_sensor_pub_->publish(fake_sensor_);
   }
 
+  /// \brief service to reset the robot to its initial parameters
   void reset_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
     std::shared_ptr<std_srvs::srv::Empty::Response>)
@@ -362,6 +426,8 @@ private:
     tf_stamped_.transform.rotation.w = q.w();
   }
 
+  /// \brief service to teleport the robot to a specified pose
+  /// \param request Pose data
   void tp_callback(
     const std::shared_ptr<nusim::srv::Teleport::Request> request,
     std::shared_ptr<nusim::srv::Teleport::Response>)
@@ -377,6 +443,8 @@ private:
     tf_stamped_.transform.rotation.w = q.w();
   }
 
+  /// \brief callback function for the wheel command topic. Stores wheel commands
+  /// \param msg the received wheel command message
   void wheel_cmd_cb(const std::shared_ptr<nuturtlebot_msgs::msg::WheelCommands> msg)
   {
     // Update wheel velocities
@@ -392,6 +460,21 @@ private:
     if (wheel_vel.r != 0) {
       wheel_vel.r += wheel_vel_noise_(gen_);
     }
+  }
+
+  /// @brief Calculates if two points are close enough
+  /// @param p1 The first point
+  /// @param p2 The second point
+  /// @param dist The distance threshold
+  /// @param radius The radius from one of the objects
+  /// @return A boolean indicating if the points are close
+  bool close(turtlelib::Point2D p1, turtlelib::Point2D p2, float dist, float radius)
+  {
+    if (turtlelib::magnitude(p2 - p1) > (dist + radius)) {
+      return false;
+    }
+
+    return true;
   }
 
 };
