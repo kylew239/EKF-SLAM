@@ -32,7 +32,8 @@
 * C.6
 * C.7
 * C.8
-* C.9 (Slip and noise not tested)
+* C.9
+* C.10
 
 # Task D
 * D.1

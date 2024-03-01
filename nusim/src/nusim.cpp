@@ -45,8 +45,10 @@ public:
     declare_parameter("wheel_radius", 0.033);
     declare_parameter("track_width", 0.16);
     declare_parameter("encoder_ticks_per_rad", 651.9);
-    declare_parameter("input_nosie", 0.0);
+    declare_parameter("input_noise", 0.0);
     declare_parameter("slip_fraction", 0.0);
+    declare_parameter("max_range", 1.0);
+    declare_parameter("basic_sensor_variance", 0.0);
 
     // Vars
     rate_ = get_parameter("rate").as_double();
@@ -70,6 +72,9 @@ public:
     slip_frac_ = get_parameter("slip_fraction").as_double();
     wheel_vel_noise_ = std::normal_distribution<double> {0.0, input_noise_};
     slip_dist = std::uniform_real_distribution<double> {-slip_frac_, slip_frac_};
+    max_range_ = get_parameter("max_range").as_double();
+    basic_sensor_var_ = get_parameter("basic_sensor_variance").as_double();
+    fake_sensor_noise_ = std::normal_distribution<> {0.0, basic_sensor_var_};
 
     // qos profile transient local
     rclcpp::QoS qos(20);
@@ -81,6 +86,7 @@ public:
     obstacle_publisher_ =
       create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", qos);
     sensor_data_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
+    fake_sensor_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("fake_sensor", 10);
 
     // Subscribers
     wheel_cmd_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
@@ -170,7 +176,7 @@ public:
     obstacle_array_.markers.resize(obstacles_x_.size());
     const auto size = obstacles_x_.size();
 
-    for (auto i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
       obstacle_array_.markers.at(i).header.frame_id = "nusim/world";
       obstacle_array_.markers.at(i).header.stamp = this->now();
       obstacle_array_.markers.at(i).ns = "obstacles";
@@ -189,12 +195,31 @@ public:
     }
     obstacle_publisher_->publish(obstacle_array_);
 
-    // Timer
+    // For the fake sensor, make a MarkerArray copied from the obstacles
+    fake_sensor_.markers.resize(obstacles_x_.size());
+    for (size_t i = 0; i < size; i++) {
+      fake_sensor_.markers.at(i).header.frame_id = "red/base_footprint";
+      fake_sensor_.markers.at(i).id = i;
+      fake_sensor_.markers.at(i).type = visualization_msgs::msg::Marker::CYLINDER;
+      fake_sensor_.markers.at(i).action = visualization_msgs::msg::Marker::DELETE;
+      fake_sensor_.markers.at(i).pose.position.z = arena_height / 2;
+      fake_sensor_.markers.at(i).scale.x = obstacles_r_ * 2;
+      fake_sensor_.markers.at(i).scale.y = obstacles_r_ * 2;
+      fake_sensor_.markers.at(i).scale.z = arena_height;
+      fake_sensor_.markers.at(i).pose.orientation.w = 1.0;
+      fake_sensor_.markers.at(i).color.a = 1.0;
+      fake_sensor_.markers.at(i).color.g = 1.0;
+      fake_sensor_.markers.at(i).color.r = 1.0;
+    }
+
+    // Timers
     timer_ = create_wall_timer(1s / rate_, std::bind(&NusimNode::timer_callback, this));
+    sensor_timer_ = create_wall_timer(1s / 5.0, std::bind(&NusimNode::sensor_timer_cb, this));
   }
 
 private:
   // Vars
+  rclcpp::Time curr_time; // Use the same time for all publishing
   double rate_;
   uint64_t timestep_;
   geometry_msgs::msg::Transform tf_;
@@ -213,6 +238,9 @@ private:
   double input_noise_, slip_frac_;
   std::normal_distribution<double> wheel_vel_noise_;
   std::uniform_real_distribution<double> slip_dist;
+  visualization_msgs::msg::MarkerArray fake_sensor_;
+  double max_range_, basic_sensor_var_;
+  std::normal_distribution<double> fake_sensor_noise_;
 
   // Generate random number and seed it
   std::random_device rd{};
@@ -223,6 +251,7 @@ private:
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr wall_publisher_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obstacle_publisher_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_data_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_pub_;
 
   // Services
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_server_;
@@ -237,10 +266,14 @@ private:
 
   // Timer
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr sensor_timer_;
 
   // Callbacks
   void timer_callback()
   {
+    // Update clock
+    curr_time = this->now();
+
     // Publishing Timer
     std_msgs::msg::UInt64 msg;
     msg.data = timestep_;
@@ -272,15 +305,44 @@ private:
     tf_stamped_.transform.rotation.w = q.w();
 
     // Broadcast Transform
-    tf_stamped_.header.stamp = this->now();
+    tf_stamped_.header.stamp = curr_time;
     broadcaster_->sendTransform(tf_stamped_);
 
     // Update and publish sensor data
     // These use the non-slip wheel positions, since slip only affects robot pos
     sensor_.left_encoder = static_cast<int>(l_new * enc_tick_per_rad_);
     sensor_.right_encoder = static_cast<int>(r_new * enc_tick_per_rad_);
-    sensor_.stamp = this->now();
+    sensor_.stamp = curr_time;
     sensor_data_pub_->publish(sensor_);
+  }
+
+  void sensor_timer_cb()
+  {
+    // Get current position for transform
+    turtlelib::Transform2D curr_pos{{diff_drive.get_config().x, diff_drive.get_config().y},
+      diff_drive.get_config().th};
+    auto inv = curr_pos.inv();
+
+    for (size_t i = 0; i < fake_sensor_.markers.size(); i++) {
+      auto & obstacle = fake_sensor_.markers.at(i);
+      obstacle.header.stamp = curr_time;
+
+      // Position of obstacle relative to robot
+      auto [x, y] = inv(turtlelib::Point2D{obstacles_x_.at(i), obstacles_y_.at(i)});
+
+      if (std::sqrt(std::pow(x, 2) + std::pow(y, 2)) <= max_range_) {
+        // If in range of sensor, update position w/ noise and set to add
+        obstacle.pose.position.x = x + fake_sensor_noise_(gen_);
+        obstacle.pose.position.y = y + fake_sensor_noise_(gen_);
+        obstacle.action = visualization_msgs::msg::Marker::ADD;
+      } else {
+        // If not in range, set to delete. Position doesn't matterr
+        obstacle.action = visualization_msgs::msg::Marker::DELETE;
+      }
+    }
+
+    // Publish
+    fake_sensor_pub_->publish(fake_sensor_);
   }
 
   void reset_callback(
