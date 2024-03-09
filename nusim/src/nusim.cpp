@@ -56,6 +56,7 @@
 #include "visualization_msgs/msg/marker.hpp"
 #include "nuturtlebot_msgs/msg/wheel_commands.hpp"
 #include "nuturtlebot_msgs/msg/sensor_data.hpp"
+#include "sensor_msgs/msg/laser_scan.hpp"
 
 using namespace std::chrono_literals;
 
@@ -84,6 +85,13 @@ public:
     declare_parameter("max_range", 1.0);
     declare_parameter("basic_sensor_variance", 0.0);
     declare_parameter("collision_radius", 0.11);
+    declare_parameter("lidar_ang_min", 0.0);
+    declare_parameter("lidar_ang_max", 2.0 * M_PI);
+    declare_parameter("lidar_ang_increment", M_PI / 180.0);
+    declare_parameter("lidar_time_increment", 0.0005592841189354658);
+    declare_parameter("lidar_scan_time", 0.20134228467941284);
+    declare_parameter("lidar_range_min", 0.12);
+    declare_parameter("lidar_range_max", 3.50);
 
     // Vars
     rate_ = get_parameter("rate").as_double();
@@ -111,6 +119,14 @@ public:
     basic_sensor_var_ = get_parameter("basic_sensor_variance").as_double();
     fake_sensor_noise_ = std::normal_distribution<> {0.0, basic_sensor_var_};
     collision_radius = get_parameter("collision_radius").as_double();
+    lidar_data_.header.frame_id = "red/base_scan";
+    lidar_data_.angle_min = get_parameter("lidar_ang_min").as_double();
+    lidar_data_.angle_max = get_parameter("lidar_ang_max").as_double();
+    lidar_data_.angle_increment = get_parameter("lidar_ang_increment").as_double();
+    lidar_data_.time_increment = get_parameter("lidar_time_increment").as_double();
+    lidar_data_.scan_time = get_parameter("lidar_scan_time").as_double();
+    lidar_data_.range_min = get_parameter("lidar_range_min").as_double();
+    lidar_data_.range_max = get_parameter("lidar_range_max").as_double();
 
     // qos profile transient local
     rclcpp::QoS qos(20);
@@ -123,6 +139,7 @@ public:
       create_publisher<visualization_msgs::msg::MarkerArray>("~/obstacles", qos);
     sensor_data_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
     fake_sensor_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("fake_sensor", 10);
+    lidar_pub_ = create_publisher<sensor_msgs::msg::LaserScan>("scan", rclcpp::SensorDataQoS());
 
     // Subscribers
     wheel_cmd_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
@@ -251,6 +268,7 @@ public:
     // Timers
     timer_ = create_wall_timer(1s / rate_, std::bind(&NusimNode::timer_callback, this));
     sensor_timer_ = create_wall_timer(1s / 5.0, std::bind(&NusimNode::sensor_timer_cb, this));
+    lidar_timer_ = create_wall_timer(1s / 5.0, std::bind(&NusimNode::lidar_timer_cb, this));
   }
 
 private:
@@ -278,6 +296,8 @@ private:
   double max_range_, basic_sensor_var_;
   std::normal_distribution<double> fake_sensor_noise_;
   double collision_radius;
+  sensor_msgs::msg::LaserScan lidar_data_;
+  const turtlelib::Transform2D T_robot_lidar;
 
   // Generate random number and seed it
   std::random_device rd{};
@@ -289,6 +309,7 @@ private:
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr obstacle_publisher_;
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_data_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr lidar_pub_;
 
   // Services
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_server_;
@@ -304,6 +325,7 @@ private:
   // Timer
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr sensor_timer_;
+  rclcpp::TimerBase::SharedPtr lidar_timer_;
 
   // Callbacks
   /// \brief main timer callback for the simulation
@@ -408,6 +430,57 @@ private:
     fake_sensor_pub_->publish(fake_sensor_);
   }
 
+  /// \brief timer for the lidar. Simulates the actual robot's lidar
+  void lidar_timer_cb()
+  {
+    double ang, dist;
+    turtlelib::Point2D start, end, int_point;
+
+    // Update timestamp to latest sim time
+    lidar_data_.header.stamp = curr_time;
+
+    // Empty the ranges array
+    lidar_data_.ranges.clear();
+
+    // Calculate position of lidar in the wolrd frame
+    turtlelib::Transform2D T_b {
+      {diff_drive.get_config().x, diff_drive.get_config().y},
+      diff_drive.get_config().th};
+    auto T_lidar = T_b * T_robot_lidar;
+
+    // Go through each angle and calculate
+    for (auto i = lidar_data_.angle_min; i < lidar_data_.angle_max;
+      i += lidar_data_.angle_increment)
+    {
+      // Angle of the scan, in the world frame
+      ang = T_lidar.rotation() + i;
+
+      // Points that represent the line segment that the scan sees
+      start = turtlelib::Point2D {
+        T_lidar.translation().x + lidar_data_.range_min * std::cos(ang),
+        T_lidar.translation().y + lidar_data_.range_min * std::sin(ang),
+      };
+      end = turtlelib::Point2D {
+        T_lidar.translation().x + lidar_data_.range_max * std::cos(ang),
+        T_lidar.translation().y + lidar_data_.range_max * std::sin(ang),
+      };
+
+      // Check intersections
+      dist = check_intersect(start, end);
+      if(dist < lidar_data_.range_min || dist > lidar_data_.range_max){
+        dist = 0;
+      }
+
+      // Add noise
+      // TODO:
+
+      // Add to array
+      lidar_data_.ranges.push_back(dist);
+    }
+
+    lidar_pub_->publish(lidar_data_);
+  }
+
   /// \brief service to reset the robot to its initial parameters
   void reset_callback(
     const std::shared_ptr<std_srvs::srv::Empty::Request>,
@@ -475,6 +548,100 @@ private:
     }
 
     return true;
+  }
+
+  /// @brief Checks to see if a line segment intersects with walls or obstacles
+  /// @param start Start of the line segment
+  /// @param end End of the line segnment
+  /// @return The distance to the intersection. (0.0 if there is no intersect)
+  double check_intersect(const turtlelib::Point2D & start, const turtlelib::Point2D & end)
+  {
+    auto curr_pos = turtlelib::Point2D{diff_drive.get_config().x, diff_drive.get_config().y};
+    auto seg_slope = (end.y - start.y) / (end.x - start.x);
+    auto int_point = turtlelib::Point2D{};
+    auto y_int = start.y - seg_slope * start.x;
+    double dist = std::numeric_limits<double>::infinity();
+
+    // Check walls - we know they are centered around the origin, so we can check to
+    // see if the segment's end is greater than length / 2
+    // Check left
+    if (end.x <= -arena_x_length / 2.0) {
+      // Intersection point has an x value of length/2, calculate y
+      int_point = {-arena_x_length / 2.0, -arena_x_length / 2.0 * seg_slope + y_int};
+
+      // Update dist to be the lower value - want closest intersection
+      dist = std::min(dist, turtlelib::magnitude(int_point - curr_pos));
+    }
+
+    // Check right
+    if (end.x >= arena_x_length / 2.0) {
+      int_point = {arena_x_length / 2.0, arena_x_length / 2.0 * seg_slope + y_int};
+      dist = std::min(dist, turtlelib::magnitude(int_point - curr_pos));
+    }
+
+    // Check top
+    if (end.y >= arena_y_length / 2.0) {
+      // Intersection point has a y value of length/2, calculate x
+      int_point = {(arena_y_length / 2.0 - y_int) / seg_slope, arena_y_length / 2.0};
+      dist = std::min(dist, turtlelib::magnitude(int_point - curr_pos));
+    }
+
+    // Check bot
+    if (end.y <= -arena_y_length / 2.0) {
+      int_point = {(-arena_y_length / 2.0 - y_int) / seg_slope, -arena_y_length / 2.0};
+      dist = std::min(dist, turtlelib::magnitude(int_point - curr_pos));
+    }
+
+    // // Check if segment intersects with any obstacles
+    // // Math was derived from: https://mathworld.wolfram.com/Circle-LineIntersection.html
+    // // iterate through each obstacle to check
+    // for (size_t i = 0; i < obstacles_x_.size(); i++) {
+    //   const auto & cx = obstacles_x_.at(i);
+    //   const auto & cy = obstacles_x_.at(i);
+
+    //   // Calculate discriminant to see if there is an intersection
+    //   auto dx = end.x - start.x;
+    //   auto dy = end.y - start.y;
+    //   auto dr_sq = std::pow(dx, 2) + std::pow(dy, 2);
+    //   auto det = (start.x - cx) * (end.y - cy) - (end.x - cx) * (start.y - cy);
+    //   auto disc = std::pow(obstacles_r_, 2) * dr_sq - std::pow(det, 2);
+
+    //   // If there are intersections, calculate the points in world coordinates
+    //   if (disc >= 0) {
+    //     turtlelib::Point2D p1{
+    //       (det * dy + sign(dy) * dx * std::sqrt(disc)) / dr_sq + cx,
+    //       (-det * dx + std::abs(dy) * std::sqrt(disc)) / dr_sq + cy
+    //     };
+
+    //     turtlelib::Point2D p2{
+    //       (det * dy - sign(dy) * dx * std::sqrt(disc)) / dr_sq + cx,
+    //       (-det * dx - std::abs(dy) * std::sqrt(disc)) / dr_sq + cy
+    //     };
+
+    //     // Get the distance to the two points and save the smaller, then compare with 
+    //     // any previous distances calculated
+    //     dist =
+    //       std::min(
+    //       std::min(
+    //         turtlelib::magnitude(p1 - curr_pos),
+    //         turtlelib::magnitude(p2 - curr_pos)), dist);
+    //   }
+    // }
+
+    // dist is now the distance to the closest obstacle/wall
+    return dist;
+  }
+
+  /// @brief Return the sign of a double
+  /// @param x The double to check
+  /// @return The sign, as a double
+  double sign(double x)
+  {
+    if (std::signbit(x)) {
+      return -1;
+    } else {
+      return 1;
+    }
   }
 
 };
