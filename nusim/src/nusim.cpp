@@ -92,6 +92,7 @@ public:
     declare_parameter("lidar_scan_time", 0.20134228467941284);
     declare_parameter("lidar_range_min", 0.12);
     declare_parameter("lidar_range_max", 3.50);
+    declare_parameter("lidar_noise", 0.0);
 
     // Vars
     rate_ = get_parameter("rate").as_double();
@@ -127,6 +128,7 @@ public:
     lidar_data_.scan_time = get_parameter("lidar_scan_time").as_double();
     lidar_data_.range_min = get_parameter("lidar_range_min").as_double();
     lidar_data_.range_max = get_parameter("lidar_range_max").as_double();
+    lidar_noise_ = std::normal_distribution<> {0.0, get_parameter("lidar_noise").as_double()};
 
     // qos profile transient local
     rclcpp::QoS qos(20);
@@ -297,7 +299,8 @@ private:
   std::normal_distribution<double> fake_sensor_noise_;
   double collision_radius;
   sensor_msgs::msg::LaserScan lidar_data_;
-  const turtlelib::Transform2D T_robot_lidar;
+  const turtlelib::Transform2D T_robot_lidar{{-0.032, 0.0}};
+  std::normal_distribution<double> lidar_noise_;
 
   // Generate random number and seed it
   std::random_device rd{};
@@ -467,12 +470,14 @@ private:
 
       // Check intersections
       dist = check_intersect(start, end);
-      if(dist < lidar_data_.range_min || dist > lidar_data_.range_max){
-        dist = 0;
-      }
 
       // Add noise
-      // TODO:
+      dist += lidar_noise_(gen_);
+
+      // Remove point if outside the lidadr range
+      if (dist < lidar_data_.range_min || dist > lidar_data_.range_max) {
+        dist = 0;
+      }
 
       // Add to array
       lidar_data_.ranges.push_back(dist);
@@ -592,41 +597,43 @@ private:
       dist = std::min(dist, turtlelib::magnitude(int_point - curr_pos));
     }
 
-    // // Check if segment intersects with any obstacles
-    // // Math was derived from: https://mathworld.wolfram.com/Circle-LineIntersection.html
-    // // iterate through each obstacle to check
-    // for (size_t i = 0; i < obstacles_x_.size(); i++) {
-    //   const auto & cx = obstacles_x_.at(i);
-    //   const auto & cy = obstacles_x_.at(i);
+    // Check if segment intersects with any obstacles
+    // Math was derived from: https://mathworld.wolfram.com/Circle-LineIntersection.html
+    // iterate through each obstacle to check
+    for (size_t i = 0; i < obstacles_x_.size(); i++) {
+      const auto & cx = obstacles_x_.at(i);
+      const auto & cy = obstacles_y_.at(i);
 
-    //   // Calculate discriminant to see if there is an intersection
-    //   auto dx = end.x - start.x;
-    //   auto dy = end.y - start.y;
-    //   auto dr_sq = std::pow(dx, 2) + std::pow(dy, 2);
-    //   auto det = (start.x - cx) * (end.y - cy) - (end.x - cx) * (start.y - cy);
-    //   auto disc = std::pow(obstacles_r_, 2) * dr_sq - std::pow(det, 2);
+      // Calculate discriminant to see if there is an intersection
+      auto dx = end.x - start.x;
+      auto dy = end.y - start.y;
+      auto dr_sq = std::pow(dx, 2) + std::pow(dy, 2);
+      auto det = (start.x - cx) * (end.y - cy) - (end.x - cx) * (start.y - cy);
+      auto disc = std::pow(obstacles_r_, 2) * dr_sq - std::pow(det, 2);
 
-    //   // If there are intersections, calculate the points in world coordinates
-    //   if (disc >= 0) {
-    //     turtlelib::Point2D p1{
-    //       (det * dy + sign(dy) * dx * std::sqrt(disc)) / dr_sq + cx,
-    //       (-det * dx + std::abs(dy) * std::sqrt(disc)) / dr_sq + cy
-    //     };
+      // If there are intersections, calculate the points in world coordinates
+      if (disc >= 0) {
+        std::vector<turtlelib::Point2D> points_found;
+        points_found.push_back(
+        {
+          (det * dy + sign(dy) * dx * std::sqrt(disc)) / dr_sq + cx,
+          (-det * dx + std::abs(dy) * std::sqrt(disc)) / dr_sq + cy
+        });
 
-    //     turtlelib::Point2D p2{
-    //       (det * dy - sign(dy) * dx * std::sqrt(disc)) / dr_sq + cx,
-    //       (-det * dx - std::abs(dy) * std::sqrt(disc)) / dr_sq + cy
-    //     };
+        points_found.push_back(
+        {
+          (det * dy - sign(dy) * dx * std::sqrt(disc)) / dr_sq + cx,
+          (-det * dx - std::abs(dy) * std::sqrt(disc)) / dr_sq + cy
+        });
 
-    //     // Get the distance to the two points and save the smaller, then compare with 
-    //     // any previous distances calculated
-    //     dist =
-    //       std::min(
-    //       std::min(
-    //         turtlelib::magnitude(p1 - curr_pos),
-    //         turtlelib::magnitude(p2 - curr_pos)), dist);
-    //   }
-    // }
+        // For each point found, check if in line segment, then update dist
+        for (auto & point : points_found) {
+          if (lies_within_x(point, start, end)) {
+            dist = std::min(dist, turtlelib::magnitude(point - curr_pos));
+          }
+        }
+      }
+    }
 
     // dist is now the distance to the closest obstacle/wall
     return dist;
@@ -642,6 +649,24 @@ private:
     } else {
       return 1;
     }
+  }
+
+  /// @brief Checks if a point's x value lies bewteen two points of a line segment
+  /// @param p The point to check
+  /// @param start Start of the line segment
+  /// @param end End of the line segment
+  /// @return If a point lies bewteen two points of a line segment
+  bool lies_within_x(
+    const turtlelib::Point2D & p, const turtlelib::Point2D & start,
+    const turtlelib::Point2D & end)
+  {
+    if(p.x >= start.x && p.x <= end.x){
+      return true;
+    }
+    if(p.x <= start.x && p.x >= end.x){
+      return true;
+    }
+    return false;
   }
 
 };
