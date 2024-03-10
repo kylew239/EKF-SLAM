@@ -469,7 +469,7 @@ private:
       };
 
       // Check intersections
-      dist = check_intersect(start, end);
+      dist = check_intersect(start, end, T_lidar.translation());
 
       // Add noise
       dist += lidar_noise_(gen_);
@@ -559,9 +559,11 @@ private:
   /// @param start Start of the line segment
   /// @param end End of the line segnment
   /// @return The distance to the intersection. (0.0 if there is no intersect)
-  double check_intersect(const turtlelib::Point2D & start, const turtlelib::Point2D & end)
+  double check_intersect(
+    const turtlelib::Point2D & start, const turtlelib::Point2D & end,
+    const turtlelib::Vector2D & lidar_vec)
   {
-    auto curr_pos = turtlelib::Point2D{diff_drive.get_config().x, diff_drive.get_config().y};
+    auto curr_pos = turtlelib::Point2D{lidar_vec.x, lidar_vec.y};
     auto seg_slope = (end.y - start.y) / (end.x - start.x);
     auto int_point = turtlelib::Point2D{};
     auto y_int = start.y - seg_slope * start.x;
@@ -660,10 +662,10 @@ private:
     const turtlelib::Point2D & p, const turtlelib::Point2D & start,
     const turtlelib::Point2D & end)
   {
-    if(p.x >= start.x && p.x <= end.x){
+    if (p.x >= start.x && p.x <= end.x) {
       return true;
     }
-    if(p.x <= start.x && p.x >= end.x){
+    if (p.x <= start.x && p.x >= end.x) {
       return true;
     }
     return false;
