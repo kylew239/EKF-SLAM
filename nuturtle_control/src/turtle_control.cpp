@@ -1,3 +1,26 @@
+/// \file
+/// \brief Controls the robot
+
+/// PARAMETERS:
+///     rate (double): The rate in Hz that the simulation runs at
+///     wheel_radius (double): Radius of the wheels
+///     track_width (double): Track width
+///     motor_cmd_max (int): Max command for the motor
+///     motor_cmd_per_rad_sec (double): Motor command per rad/sec
+///     encoder_ticks_per_rad (double): Motor encoder ticks per radian
+///     collision_radius (double): Radius of the robot collision
+///     wheel_left (string): Name of the left wheel joint
+///     wheel_right (string): Name of the right wheel joint
+/// PUBLISHERS:
+///     red/sensor_data (nuturtlebot_msgs/msg/SensorData): simulated turtlebot sensor data
+///     fake_sensor (visualization_msgs/msg/MarkerArray): fake sensor data for the detected obstacles
+///     scan (sensor_msgs/msg/LaserScan): Fake lidar scan data
+///     wheel_cmd (nuturtlebot_msgs/msg/WheelCommands): wheel commands sent to the robot
+///     joint_states (sensor_msgs/msg/JointState): Joint states of the robot
+/// SUBSCRIBERS:
+///     cmd_vel (geometry_msgs/msg/Twist): Commanded Twist for the robot to follow
+///     sensor_data (nuturtlebot_msgs/msg/SensorData): Encoder data from the robot
+
 #include <chrono>
 #include <functional>
 #include <memory>
@@ -31,6 +54,8 @@ public:
     declare_parameter("motor_cmd_per_rad_sec", rclcpp::PARAMETER_DOUBLE);
     declare_parameter("encoder_ticks_per_rad", rclcpp::PARAMETER_DOUBLE);
     declare_parameter("collision_radius", rclcpp::PARAMETER_DOUBLE);
+    declare_parameter("wheel_left", rclcpp::PARAMETER_STRING);
+    declare_parameter("wheel_right", rclcpp::PARAMETER_STRING);
 
     // Get values for params
     rate_ = get_parameter("rate").as_double();
@@ -56,7 +81,8 @@ public:
 
     // Vars
     js_.header.frame_id = "red/base_link";
-    js_.name = {"wheel_left_link", "wheel_right_link"};
+    // js_.name = {"red/wheel_left_link", "red/wheel_right_link"};
+    js_.name = {get_parameter("wheel_left").as_string(), get_parameter("wheel_right").as_string()};
     js_.position = {0.0, 0.0};
     js_.velocity = {0.0, 0.0};
     diff_drive = {track_width_, wheel_radius_};
@@ -84,7 +110,8 @@ public:
 
 private:
   // Parameters
-  double wheel_radius_, track_width_, motor_cmd_max_;
+  int motor_cmd_max_;
+  double wheel_radius_, track_width_;
   double motor_cmd_rad_sec_, enc_ticks_, coll_radius_;
   double rate_;
 

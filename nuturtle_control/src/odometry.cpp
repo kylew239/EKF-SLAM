@@ -1,3 +1,23 @@
+/// \file
+/// \brief Calculates the odometry of the robot
+
+/// PARAMETERS:
+///     rate (double): The rate in Hz that the simulation runs at
+///     body_id (string): Name of the body frame
+///     odom_id (string): Name of the odom frame
+///     wheel_left (string): Name of the left wheel joint
+///     wheel_radius (double): Radius of the wheels
+///     track_width (double): Track width
+///     wheel_right (string): Name of the right wheel joint
+///     path_size_max (double): Max size of the path
+/// PUBLISHERS:
+///     odom (nav_msgs/msg/Odometry): Calculated odometry of the robot
+///     ~/path (nav_msgs/msg/Path): Path the robot has followed according to odometry
+/// SUBSCRIBERS:
+///     joint_states (sensor_msgs/msg/JointState): Joint states of the robot
+/// SERVERS:
+///     initial_pose (nuturtle_control/srv/InitialPose): Reset the robot to a specified position
+
 #include <chrono>
 #include <functional>
 #include <memory>

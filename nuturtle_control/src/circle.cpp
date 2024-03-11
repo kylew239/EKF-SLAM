@@ -1,12 +1,21 @@
+/// \file
+/// \brief Control the robot to move in a circle
+
+/// PARAMETERS:
+///     frequency (double): The rate in Hz that the simulation runs at
+/// PUBLISHERS:
+///     cmd_vel (geometry_msgs/msg/Twist): Commanded Twist for the robot to follow
+/// SERVERS:
+///     stop (std_srvs/srv/Empty): Stop the robot
+///     reverse (std_srvs/srv/Empty): Reverse the direction of the robot
+///     control (nucontrol/srv/Control): Control the robot to move in a circle
+
 #include <chrono>
 #include <functional>
 #include <memory>
 #include <string>
 
 #include "rclcpp/rclcpp.hpp"
-// #include "turtlelib/diff_drive.hpp"
-// #include "turtlelib/geometry2d.hpp"
-// #include "turtlelib/se2d.hpp"
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "std_srvs/srv/empty.hpp"

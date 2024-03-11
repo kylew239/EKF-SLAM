@@ -2,7 +2,7 @@
 /// \brief Simulation for the NUTurtle
 
 /// PARAMETERS:
-///     rate (bool): The rate in Hz that the simulation runs at
+///     rate (double): The rate in Hz that the simulation runs at
 ///     x0 (double): Initial x position of the robot
 ///     y0 (double): Initial y position of the robot
 ///     th0 (double): Initial angle of the robot
@@ -20,12 +20,23 @@
 ///     max_range (double): Max range of the sensor for detecting obstacles
 ///     basic_sensor_variance (double): Standard deviation for the obstacle sensing noise
 ///     collision_radius (double): Radius of the robot collision
+///     lidar_ang_min (double): Min angle for the lidar sensor
+///     lidar_ang_max (double): Max angle for the lidar sensor
+///     lidar_ang_increment (double): Angle increment for each lidar scan
+///     lidar_time_increment (double): Time increment for each lidar scan
+///     lidar_scan_time (double): Time between scans
+///     lidar_range_min (double): Min range for the lidar
+///     lidar_range_max (double): Max range for the lidar
+///     lidar_noise (double): Standard deviation for lidar noise
+///     path_size_max (double): Max size of the path
 /// PUBLISHERS:
 ///     ~/obstacles (visualization_msgs/msg/MarkerArray): marker array containing the obstacles
 ///     ~/walls (visualization_msgs/msg/MarkerArray): marker array containing the arena walls
 ///     ~/timestep (std_msgs/msg/UInt64): timestep of the simulation
 ///     red/sensor_data (nuturtlebot_msgs/msg/SensorData): simulated turtlebot sensor data
 ///     fake_sensor (visualization_msgs/msg/MarkerArray): fake sensor data for the detected obstacles
+///     scan (sensor_msgs/msg/LaserScan): Fake lidar scan data
+///     ~/path (nav_msgs/msg/Path): Path the robot has followed
 /// SUBSCRIBERS:
 ///     wheel_cmd (nuturtlebot_msgs/msg/WheelCommands): wheel commands sent to the robot
 /// SERVERS:

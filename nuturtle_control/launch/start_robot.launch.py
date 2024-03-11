@@ -120,14 +120,14 @@ def generate_launch_description():
             executable='turtle_control_node',
             parameters=[PathJoinSubstitution([FindPackageShare("nuturtle_description"),
                                               "config",
-                                              "diff_params.yaml"])],
+                                              "diff_params.yaml"]),
+                        {'wheel_left': 'wheel_left_joint'},
+                        {'wheel_right': 'wheel_right_joint'}],
             condition=IfCondition(EqualsSubstitution(
                 LaunchConfiguration('robot'), "nusim")),
             remappings=[('wheel_cmd', 'red/wheel_cmd'),
                         ('joint_states', 'red/joint_states'),
-                        ('sensor_data', 'red/sensor_data'),
-                        ('wheel_left_link', 'red/wheel_left_link'),
-                        ('wheel_right_link', 'red/wheel_right_link')]
+                        ('sensor_data', 'red/sensor_data')]
         ),
 
         Node(
@@ -140,8 +140,8 @@ def generate_launch_description():
                                               "diff_params.yaml"]),
                         {'body_id': 'blue/base_footprint'},
                         {'odom_id': 'odom'},
-                        {'wheel_left': 'wheel_left_joint'},
-                        {'wheel_right': 'wheel_right_joint'}],
+                        {'wheel_left': 'red/wheel_left_joint'},
+                        {'wheel_right': 'red/wheel_right_joint'}],
             remappings=[('joint_states', 'red/joint_states')]
         ),
 
