@@ -22,6 +22,24 @@ def generate_launch_description():
                               default_value="true",
                               description="Determines whether or not to use rviz"),
 
+        # Nodes
+        Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            output='screen',
+            arguments=['-d', PathJoinSubstitution([FindPackageShare('nusim'),
+                                                   'config',
+                                                   'nusim.rviz'])],
+            on_exit=Shutdown(),
+            condition=IfCondition(EqualsSubstitution(LaunchConfiguration('use_rviz'), "true"))),
+        
+        Node(
+            package='nusim',
+            executable='nusim_node',
+            on_exit=Shutdown(),
+            parameters=[LaunchConfiguration('param_file')]),
+
         # Include launch
         IncludeLaunchDescription(
             PathJoinSubstitution([
@@ -35,23 +53,5 @@ def generate_launch_description():
                 'use_jsp': LaunchConfiguration('use_jsp')
             }.items(),
         ),
-
-        # Nodes
-        Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            output='screen',
-            arguments=['-d', PathJoinSubstitution([FindPackageShare('nusim'),
-                                                   'config',
-                                                   'nusim.rviz'])],
-            on_exit=Shutdown(),
-            condition=IfCondition(EqualsSubstitution(LaunchConfiguration('use_rviz'), "true"))),
-
-        Node(
-            package='nusim',
-            executable='nusim_node',
-            on_exit=Shutdown(),
-            parameters=[LaunchConfiguration('param_file')])
 
     ])

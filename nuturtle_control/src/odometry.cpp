@@ -14,6 +14,7 @@
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
 #include "nuturtle_control/srv/initial_pose.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 using namespace std::chrono_literals;
 
@@ -31,6 +32,7 @@ public:
     declare_parameter("wheel_right", rclcpp::PARAMETER_STRING);
     declare_parameter("wheel_radius", rclcpp::PARAMETER_DOUBLE);
     declare_parameter("track_width", rclcpp::PARAMETER_DOUBLE);
+    declare_parameter("path_size_max", 200);
 
     // Get values for params
     rate_ = get_parameter("rate").as_double();
@@ -40,6 +42,7 @@ public:
     wheel_right_ = get_parameter("wheel_right").as_string();
     wheel_radius_ = get_parameter("wheel_radius").as_double();
     track_width_ = get_parameter("track_width").as_double();
+    path_size_max_ = get_parameter("path_size_max").get_parameter_value().get<size_t>();
 
 
     // Check if parameters are defined
@@ -58,9 +61,11 @@ public:
     odom_.child_frame_id = body_id_;
     diff_drive = {track_width_, wheel_radius_};
     config = {0.0, 0.0, 0.0};
+    path_.header.frame_id = odom_id_;
 
     // Pubishers
     odom_pub_ = create_publisher<nav_msgs::msg::Odometry>("odom", 10);
+    path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
 
     // Subscribers
     joint_state_sub_ = create_subscription<sensor_msgs::msg::JointState>(
@@ -78,6 +83,7 @@ public:
 
     // Timer
     timer_ = create_wall_timer(1s / rate_, std::bind(&Odometry::timer_callback, this));
+    path_timer_ = create_wall_timer(1s / 5.0, std::bind(&Odometry::path_timer_cb, this));
 
     // TF Broadcaster
     broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
@@ -91,14 +97,19 @@ private:
   std::string body_id_, odom_id_, wheel_left_, wheel_right_;
 
   // Vars
+  rclcpp::Time curr_time; // Use the same time for all publishing
   nav_msgs::msg::Odometry odom_;
   double left_pos, right_pos, left_vel, right_vel;
   turtlelib::DiffDrive diff_drive = {track_width_, wheel_radius_};
   turtlelib::state config;
   tf2::Quaternion q;
+  size_t path_size_max_;
+  nav_msgs::msg::Path path_;
+  turtlelib::state prev_state = diff_drive.get_config();
 
   // Publishers
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
 
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_state_sub_;
@@ -108,6 +119,7 @@ private:
 
   // Timer
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr path_timer_;
 
   // TF Broadcaster
   std::unique_ptr<tf2_ros::TransformBroadcaster> broadcaster_;
@@ -116,8 +128,11 @@ private:
   // Callbacks
   void timer_callback()
   {
+    // Update current time
+    curr_time = this->now();
+
     // Publish odom message
-    odom_.header.stamp = this->now();
+    odom_.header.stamp = curr_time;
     odom_pub_->publish(odom_);
 
     // Update and publish TF
@@ -128,6 +143,44 @@ private:
     tf_stamped_.transform.rotation.z = odom_.pose.pose.orientation.z;
     tf_stamped_.transform.rotation.w = odom_.pose.pose.orientation.w;
     broadcaster_->sendTransform(tf_stamped_);
+  }
+
+  void path_timer_cb()
+  {
+    auto curr = diff_drive.get_config();
+
+    // If the states are not almost equal
+    if (!(turtlelib::almost_equal(curr.x, prev_state.x) &&
+      turtlelib::almost_equal(curr.y, prev_state.y) &&
+      turtlelib::almost_equal(curr.th, prev_state.th)))
+    {
+      // Create pose stamped
+      geometry_msgs::msg::PoseStamped pose_s;
+      pose_s.header.stamp = curr_time;
+      pose_s.pose.position.x = curr.x;
+      pose_s.pose.position.y = curr.y;
+      tf2::Quaternion q_path;
+      q_path.setRPY(0.0, 0.0, curr.th);
+      pose_s.pose.orientation.x = q_path.x();
+      pose_s.pose.orientation.y = q_path.y();
+      pose_s.pose.orientation.z = q_path.z();
+      pose_s.pose.orientation.w = q_path.w();
+
+      // Add to path
+      path_.poses.push_back(pose_s);
+
+      // If path size has been reached, remove the first element
+      if(path_.poses.size() > path_size_max_){
+        path_.poses.erase(path_.poses.begin());
+      }
+
+      // Updated stored position
+      prev_state = diff_drive.get_config();
+    }
+
+    // update stamp and publish
+    path_.header.stamp = curr_time;
+    path_pub_->publish(path_);
   }
 
   void js_cb(const std::shared_ptr<sensor_msgs::msg::JointState> msg)

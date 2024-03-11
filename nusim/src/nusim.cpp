@@ -44,12 +44,14 @@
 #include "turtlelib/diff_drive.hpp"
 #include "turtlelib/geometry2d.hpp"
 #include "turtlelib/se2d.hpp"
+#include "tf2/LinearMath/Quaternion.h"
 
 #include "nusim/srv/teleport.hpp"
 #include "std_msgs/msg/u_int64.hpp"
 #include "std_srvs/srv/empty.hpp"
 #include "tf2_ros/transform_broadcaster.h"
 #include "geometry_msgs/msg/transform_stamped.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2/LinearMath/Quaternion.h"
 #include "tf2/LinearMath/Vector3.h"
 #include "visualization_msgs/msg/marker_array.hpp"
@@ -57,6 +59,8 @@
 #include "nuturtlebot_msgs/msg/wheel_commands.hpp"
 #include "nuturtlebot_msgs/msg/sensor_data.hpp"
 #include "sensor_msgs/msg/laser_scan.hpp"
+#include "nav_msgs/msg/path.hpp"
+
 
 using namespace std::chrono_literals;
 
@@ -93,6 +97,7 @@ public:
     declare_parameter("lidar_range_min", 0.12);
     declare_parameter("lidar_range_max", 3.50);
     declare_parameter("lidar_noise", 0.0);
+    declare_parameter("path_size_max", 200);
 
     // Vars
     rate_ = get_parameter("rate").as_double();
@@ -129,6 +134,8 @@ public:
     lidar_data_.range_min = get_parameter("lidar_range_min").as_double();
     lidar_data_.range_max = get_parameter("lidar_range_max").as_double();
     lidar_noise_ = std::normal_distribution<> {0.0, get_parameter("lidar_noise").as_double()};
+    path_.header.frame_id = "nusim/world";
+    path_size_max_ = get_parameter("path_size_max").get_parameter_value().get<size_t>();
 
     // qos profile transient local
     rclcpp::QoS qos(20);
@@ -142,6 +149,7 @@ public:
     sensor_data_pub_ = create_publisher<nuturtlebot_msgs::msg::SensorData>("red/sensor_data", 10);
     fake_sensor_pub_ = create_publisher<visualization_msgs::msg::MarkerArray>("fake_sensor", 10);
     lidar_pub_ = create_publisher<sensor_msgs::msg::LaserScan>("scan", rclcpp::SensorDataQoS());
+    path_pub_ = create_publisher<nav_msgs::msg::Path>("~/path", 10);
 
     // Subscribers
     wheel_cmd_sub_ = create_subscription<nuturtlebot_msgs::msg::WheelCommands>(
@@ -271,6 +279,7 @@ public:
     timer_ = create_wall_timer(1s / rate_, std::bind(&NusimNode::timer_callback, this));
     sensor_timer_ = create_wall_timer(1s / 5.0, std::bind(&NusimNode::sensor_timer_cb, this));
     lidar_timer_ = create_wall_timer(1s / 5.0, std::bind(&NusimNode::lidar_timer_cb, this));
+    path_timer_ = create_wall_timer(1s / 5.0, std::bind(&NusimNode::path_timer_cb, this));
   }
 
 private:
@@ -301,6 +310,9 @@ private:
   sensor_msgs::msg::LaserScan lidar_data_;
   const turtlelib::Transform2D T_robot_lidar{{-0.032, 0.0}};
   std::normal_distribution<double> lidar_noise_;
+  turtlelib::state prev_state = diff_drive.get_config();
+  nav_msgs::msg::Path path_;
+  size_t path_size_max_;
 
   // Generate random number and seed it
   std::random_device rd{};
@@ -313,6 +325,7 @@ private:
   rclcpp::Publisher<nuturtlebot_msgs::msg::SensorData>::SharedPtr sensor_data_pub_;
   rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr fake_sensor_pub_;
   rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr lidar_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr path_pub_;
 
   // Services
   rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_server_;
@@ -329,6 +342,7 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr sensor_timer_;
   rclcpp::TimerBase::SharedPtr lidar_timer_;
+  rclcpp::TimerBase::SharedPtr path_timer_;
 
   // Callbacks
   /// \brief main timer callback for the simulation
@@ -484,6 +498,44 @@ private:
     }
 
     lidar_pub_->publish(lidar_data_);
+  }
+
+  void path_timer_cb()
+  {
+    auto curr = diff_drive.get_config();
+
+    // If the states are not almost equal
+    if (!(turtlelib::almost_equal(curr.x, prev_state.x) &&
+      turtlelib::almost_equal(curr.y, prev_state.y) &&
+      turtlelib::almost_equal(curr.th, prev_state.th)))
+    {
+      // Create pose stamped
+      geometry_msgs::msg::PoseStamped pose_s;
+      pose_s.header.stamp = curr_time;
+      pose_s.pose.position.x = curr.x;
+      pose_s.pose.position.y = curr.y;
+      tf2::Quaternion q_path;
+      q_path.setRPY(0.0, 0.0, curr.th);
+      pose_s.pose.orientation.x = q_path.x();
+      pose_s.pose.orientation.y = q_path.y();
+      pose_s.pose.orientation.z = q_path.z();
+      pose_s.pose.orientation.w = q_path.w();
+
+      // Add to path
+      path_.poses.push_back(pose_s);
+
+      // If path size has been reached, remove the first element
+      if(path_.poses.size() > path_size_max_){
+        path_.poses.erase(path_.poses.begin());
+      }
+
+      // Updated stored position
+      prev_state = diff_drive.get_config();
+    }
+
+    // update stamp and publish
+    path_.header.stamp = curr_time;
+    path_pub_->publish(path_);
   }
 
   /// \brief service to reset the robot to its initial parameters
