@@ -190,7 +190,7 @@ private:
       path_.poses.push_back(pose_s);
 
       // If path size has been reached, remove the first element
-      if(path_.poses.size() > path_size_max_){
+      if (path_.poses.size() > path_size_max_) {
         path_.poses.erase(path_.poses.begin());
       }
 

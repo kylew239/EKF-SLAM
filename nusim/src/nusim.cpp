@@ -28,7 +28,7 @@
 ///     lidar_range_min (double): Min range for the lidar
 ///     lidar_range_max (double): Max range for the lidar
 ///     lidar_noise (double): Standard deviation for lidar noise
-///     path_size_max (double): Max size of the path
+///     path_size_max (int): Max size of the path
 /// PUBLISHERS:
 ///     ~/obstacles (visualization_msgs/msg/MarkerArray): marker array containing the obstacles
 ///     ~/walls (visualization_msgs/msg/MarkerArray): marker array containing the arena walls
@@ -536,7 +536,7 @@ private:
       path_.poses.push_back(pose_s);
 
       // If path size has been reached, remove the first element
-      if(path_.poses.size() > path_size_max_){
+      if (path_.poses.size() > path_size_max_) {
         path_.poses.erase(path_.poses.begin());
       }
 

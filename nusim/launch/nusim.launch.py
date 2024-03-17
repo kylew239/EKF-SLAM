@@ -33,7 +33,7 @@ def generate_launch_description():
                                                    'nusim.rviz'])],
             on_exit=Shutdown(),
             condition=IfCondition(EqualsSubstitution(LaunchConfiguration('use_rviz'), "true"))),
-        
+
         Node(
             package='nusim',
             executable='nusim_node',

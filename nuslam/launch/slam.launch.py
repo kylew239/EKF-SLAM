@@ -1,8 +1,3 @@
-# TODO: 
-# The map, consisting of the estimated obstacle locations (in green)
-# A nav_msgs/Path corresponding to the path the robot takes according to slam (in green).
-
-
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, GroupAction, Shutdown
 from launch.substitutions import LaunchConfiguration
@@ -10,7 +5,7 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.conditions import IfCondition
-from launch.substitutions import EqualsSubstitution, AndSubstitution, NotEqualsSubstitution
+from launch.substitutions import EqualsSubstitution
 
 
 def generate_launch_description():
