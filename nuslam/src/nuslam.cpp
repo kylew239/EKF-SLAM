@@ -14,6 +14,8 @@
 #include "turtlelib/diff_drive.hpp"
 #include "turtlelib/geometry2d.hpp"
 #include "turtlelib/se2d.hpp"
+#include "tf2/LinearMath/Quaternion.h"
+#include "tf2/LinearMath/Matrix3x3.h"
 
 #include "visualization_msgs/msg/marker_array.hpp"
 #include "nav_msgs/msg/path.hpp"
@@ -40,9 +42,8 @@ public:
     declare_parameter("kalman_process_noise.y", 0.001);
     declare_parameter("kalman_R", 0.05);
 
-
     // Vars
-    mat_size = get_parameter("max_landmark").as_int() * 2 + 3;
+    mat_size = get_parameter("max_landmarks").as_int() * 2 + 3;
     prev_state = {mat_size, arma::fill::zeros};
     detected = std::vector<bool>(mat_size, false);
     auto kalman_process_noise_theta = get_parameter("kalman_process_noise.theta").as_double();
@@ -50,7 +51,10 @@ public:
     auto kalman_process_noise_y = get_parameter("kalman_process_noise.y").as_double();
     auto R = get_parameter("kalman_R").as_double();
     R_mat = {2 * mat_size, 2 * mat_size, arma::fill::zeros};
-
+    path_size_max_ = get_parameter("path_size_max").get_parameter_value().get<size_t>();
+    map_odom_tf_for_pub.header.frame_id = "map";
+    map_odom_tf_for_pub.child_frame_id = "odom";
+    path_.header.frame_id = "nusim/world";
 
     // Initial previous covariance, but with robot = 0
     prev_covariance = {mat_size, mat_size, arma::fill::zeros};
@@ -109,7 +113,9 @@ private:
   arma::vec prev_state;
   std::vector<bool> detected;
   arma::mat prev_covariance, Q_bar, R_mat;
-
+  nav_msgs::msg::Path path_;
+  size_t path_size_max_;
+  geometry_msgs::msg::TransformStamped map_odom_tf_for_pub;
 
   // Publishers
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr odom_pub_;
@@ -127,7 +133,18 @@ private:
 
   void odom_cb(const std::shared_ptr<nav_msgs::msg::Odometry> msg)
   {
+    // Get the odom quaternion and convert into roll pitch yaw
+    tf2::Quaternion q;
+    q.setW(msg->pose.pose.orientation.w);
+    q.setX(msg->pose.pose.orientation.x);
+    q.setY(msg->pose.pose.orientation.y);
+    q.setZ(msg->pose.pose.orientation.z);
+    tf2::Matrix3x3 m(q);
+    double r, p, y;
+    m.getRPY(r, p, y);
 
+    // Save the x, y, and theta values
+    T_odom_robot = {{msg->pose.pose.position.x, msg->pose.pose.position.y}, y};
   }
 
   void fake_sensor_cb(const std::shared_ptr<visualization_msgs::msg::MarkerArray> msg)
@@ -207,12 +224,103 @@ private:
       arma::vec est_dist = {std::sqrt(dist),
         turtlelib::normalize_angle(std::atan2(dy, dx) - state_pred_th)};
       arma::vec act_dist = {marker_range, marker_bearing};
+      arma::mat d_dist = act_dist - est_dist;
+      d_dist(1) = turtlelib::normalize_angle(d_dist(1));
 
       // Kalman Gain
       arma::mat kalman_gain = covariance * H_tranposed *
         (H * covariance * H_tranposed + R_mat.submat(2 * i, 2 * i, 2 * i + 1, 2 * i + 1)).i();
+
+      // Update covariance
+      covariance = (Identity - kalman_gain * H) * covariance;
+
+      // Update state prediction using kalman gain
+      state_pred += kalman_gain * d_dist;
+      state_pred_th = turtlelib::normalize_angle(state_pred_th);
     }
 
+    // Update time stamp for all publishing
+    curr_time = this->now();
+
+    // Path update and publish
+    // Check if turtlebot has moved
+    if (!(
+        turtlelib::almost_equal(state_pred(0), prev_state(0)) &&
+        turtlelib::almost_equal(state_pred(1), prev_state(1)) &&
+        turtlelib::almost_equal(state_pred(2), prev_state(2))
+    ))
+    {
+      // Create pose stamped
+      geometry_msgs::msg::PoseStamped pose_s;
+      pose_s.header.stamp = curr_time;
+      pose_s.pose.position.x = state_pred_x;
+      pose_s.pose.position.y = state_pred_y;
+      tf2::Quaternion q_path;
+      q_path.setRPY(0.0, 0.0, state_pred_th);
+      pose_s.pose.orientation.x = q_path.x();
+      pose_s.pose.orientation.y = q_path.y();
+      pose_s.pose.orientation.z = q_path.z();
+      pose_s.pose.orientation.w = q_path.w();
+
+      // If path size has been reached, remove the first element
+      if (path_.poses.size() > path_size_max_) {
+        path_.poses.erase(path_.poses.begin());
+      }
+    }
+
+    // Publish path
+    path_pub_->publish(path_);
+
+    // Update Transforms
+    T_map_robot = {{state_pred_x, state_pred_y}, state_pred_th};
+    // RCLCPP_ERROR_STREAM(this->get_logger(), "state pred tf: " << T_map_robot); TODO: Delete
+    T_map_odom = T_map_robot * T_odom_robot.inv();
+
+    // Build and send map odom transform message
+    map_odom_tf_for_pub.transform.translation.x = T_map_robot.translation().x;
+    map_odom_tf_for_pub.transform.translation.y = T_map_robot.translation().y;
+    tf2::Quaternion q;
+    q.setRPY(0.0, 0.0, T_map_robot.rotation());
+    map_odom_tf_for_pub.transform.rotation.x = q.x();
+    map_odom_tf_for_pub.transform.rotation.y = q.y();
+    map_odom_tf_for_pub.transform.rotation.z = q.z();
+    map_odom_tf_for_pub.transform.rotation.w = q.w();
+    broadcaster_->sendTransform(map_odom_tf_for_pub);
+
+    // Build and publish estimated landmarks
+    visualization_msgs::msg::MarkerArray est_landmarks;
+    for (long int i = 0; i < get_parameter("max_landmarks").as_int(); i++) {
+
+      //Skip marker if it hasn't been seen
+      if (!detected.at(i)) {
+        continue;
+      }
+      visualization_msgs::msg::Marker marker;
+      marker.header.frame_id = "map";
+      marker.type = visualization_msgs::msg::Marker::CYLINDER;
+      marker.action = visualization_msgs::msg::Marker::ADD;
+
+      // TODO: use parameters for radius and height
+      marker.pose.position.z = 0.25 / 2.0;
+      marker.scale.x = 0.038 * 2.0;
+      marker.scale.y = 0.038 * 2.0;
+      marker.scale.z = 0.25;
+      marker.color.r = 0.0;
+      marker.color.g = 1.0;
+      marker.color.b = 0.0;
+      marker.color.a = 1.0;
+      marker.id = i; // TODO: check if offset is needed
+      marker.pose.position.x = state_pred(3 + 2 * i);
+      marker.pose.position.y = state_pred(3 + 2 * i + 1);
+
+      est_landmarks.markers.push_back(marker);
+    }
+    landmark_pub_->publish(est_landmarks);
+
+    // Update states
+    // TODO: see if last odom config needs to be saved
+    prev_state = state_pred;
+    prev_covariance = covariance;
   }
 
 };

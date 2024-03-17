@@ -22,6 +22,10 @@ def generate_launch_description():
         DeclareLaunchArgument('use_rviz',
                               default_value="false",
                               description='Determines whether or not rviz is used (true | false)'),
+        DeclareLaunchArgument("odom_frame",
+                              default_value="odom",
+                              description="Determines what frame to use for odometry (odom | " +
+                              "uncorrected_odom)"),
 
         # Publish Identity Transform
         Node(
@@ -29,7 +33,7 @@ def generate_launch_description():
             executable="static_transform_publisher",
             name="static_transform_odom",
             arguments=['--frame-id', 'nusim/world',
-                       '--child-frame-id', 'odom'],
+                       '--child-frame-id', LaunchConfiguration('odom_frame')],
             condition=IfCondition(NotEqualsSubstitution(
                 LaunchConfiguration('robot'), "none"))
         ),
@@ -139,10 +143,11 @@ def generate_launch_description():
                                               "config",
                                               "diff_params.yaml"]),
                         {'body_id': 'blue/base_footprint'},
-                        {'odom_id': 'odom'},
+                        {'odom_id': LaunchConfiguration('odom_frame')},
                         {'wheel_left': 'red/wheel_left_joint'},
                         {'wheel_right': 'red/wheel_right_joint'}],
-            remappings=[('joint_states', 'red/joint_states')]
+            remappings=[('joint_states', 'red/joint_states'),
+                        ('odom', LaunchConfiguration('odom_frame'))]
         ),
 
 
@@ -172,9 +177,10 @@ def generate_launch_description():
                                               "config",
                                               "diff_params.yaml"]),
                         {'body_id': 'blue/base_footprint'},
-                        {'odom_id': 'odom'},
+                        {'odom_id': LaunchConfiguration('odom_frame')},
                         {'wheel_left': 'wheel_left_joint'},
                         {'wheel_right': 'wheel_right_joint'}],
-            remappings=[('joint_states', 'blue/joint_states')]
+            remappings=[('joint_states', 'blue/joint_states'),
+                        ('odom', LaunchConfiguration('odom_frame'))]
         ),
     ])

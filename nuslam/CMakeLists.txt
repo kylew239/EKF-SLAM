@@ -15,6 +15,7 @@ find_package(tf2_ros REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(Armadillo REQUIRED)
 find_package(turtlelib REQUIRED)
+find_package(tf2 REQUIRED)
 
 
 include_directories(${ARMADILLO_INCLUDE_DIRS})
@@ -31,7 +32,8 @@ ament_target_dependencies(nuslam
                           nav_msgs
                           tf2_ros
                           geometry_msgs
-                          turtlelib)
+                          turtlelib
+                          tf2)
 
 
 # Install files
