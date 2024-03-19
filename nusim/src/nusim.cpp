@@ -86,8 +86,8 @@ public:
     declare_parameter("x0", 0.0);
     declare_parameter("y0", 0.0);
     declare_parameter("th0", 0.0);
-    declare_parameter("arena_x_length", 2.0);
-    declare_parameter("arena_y_length", 2.0);
+    declare_parameter("arena_x_length", 4.0);
+    declare_parameter("arena_y_length", 4.0);
     declare_parameter("obstacles_x", std::vector<double>());
     declare_parameter("obstacles_y", std::vector<double>());
     declare_parameter("obstacles_r", 0.15);

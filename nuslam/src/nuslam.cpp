@@ -49,7 +49,7 @@ public:
   {
     // Parameters
     declare_parameter("path_size_max", 200);
-    declare_parameter("max_landmarks", 3);
+    declare_parameter("max_landmarks", 5);
     declare_parameter("kalman_process_noise.theta", 0.01);
     declare_parameter("kalman_process_noise.x", 0.01);
     declare_parameter("kalman_process_noise.y", 0.01);
@@ -302,10 +302,10 @@ private:
     T_map_odom = T_map_robot * T_odom_robot.inv();
 
     // Build and send map odom transform message
-    map_odom_tf_for_pub.transform.translation.x = T_map_robot.translation().x;
-    map_odom_tf_for_pub.transform.translation.y = T_map_robot.translation().y;
+    map_odom_tf_for_pub.transform.translation.x = state_pred_x;
+    map_odom_tf_for_pub.transform.translation.y = state_pred_y;
     tf2::Quaternion q;
-    q.setRPY(0.0, 0.0, T_map_robot.rotation());
+    q.setRPY(0.0, 0.0, state_pred_th);
     map_odom_tf_for_pub.transform.rotation.x = q.x();
     map_odom_tf_for_pub.transform.rotation.y = q.y();
     map_odom_tf_for_pub.transform.rotation.z = q.z();
