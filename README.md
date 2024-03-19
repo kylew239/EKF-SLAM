@@ -1,9 +1,8 @@
 # ME495 Sensing, Navigation and Machine Learning For Robotics
 * Kyle Wang
-* Winter 2024
+* [Portfolio Post](https://kylew239.github.io/in_progress/slam/)
+* Project Duration: 1/03/24 - 3/16/24
 
-# Demo Video
-https://github.com/ME495-Navigation/EKF-SLAM/assets/59859207/28ec64a6-9530-42b5-8020-3da1f0d5af02
 
 # Package List
 This repository consists of several ROS packages
